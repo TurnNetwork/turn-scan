@@ -1,0 +1,62 @@
+# ***************************General configuration************************ ********** #
+#App version
+version: 0.15.0.0
+#server configuration
+server:
+  servlet:
+    context-path: /browser-server
+#Spring application configuration
+spring:
+  profiles.active: sun
+  application.name: browser-api
+  session.timeout: 1800 #in seconds
+  #International configuration
+  messages.basename: messages
+  #Data source configuration
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+  #Redis key configuration
+  redis:
+    key:
+      #How many pieces of data can be stored at most?
+      max-item: 500000
+      #Block list
+      blocks: ${turn.redis-namespace}:blocks
+      #Transaction list
+      transactions: ${turn.redis-namespace}:transactions
+      #Statistics
+      networkStat: ${turn.redis-namespace}:networkStat
+      #Internal transfer transaction
+      transferTx: ${turn.redis-namespace}:transferTx
+      #erc20trade
+      erc20Tx: ${turn.redis-namespace}:erc20Tx
+      #erc721 Transaction
+      erc721Tx: ${turn.redis-namespace}:erc721Tx
+  #ES index configuration
+  elasticsearch:
+    index:
+      blockIndexName: ${turn.es-namespace}_block
+      transactionIndexName: ${turn.es-namespace}_transaction
+      delegationIndexName: ${turn.es-namespace}_delegation
+      nodeOptIndexName: ${turn.es-namespace}_nodeopt
+      delegationRewardIndexName: ${turn.es-namespace}_delegation_reward
+      transferTxIndexName: ${turn.es-namespace}_transfer_tx
+      erc20TxIndexName: ${turn.es-namespace}_erc20_tx
+      erc721TxIndexName: ${turn.es-namespace}_erc721_tx
+# MyBatis configuration (note: must correspond to the path of the mapper mapping xml file)
+mybatis:
+  mapper-locations: classpath*:mapper/*.xml, classpath*:custommapper/*.xml
+  # Entity category name configuration (note: the path to the corresponding entity class)
+  type-aliases-package: com.turn.browser.dao.entity
+
+# mq settings:
+activemq:
+  brokenHost: ${brokenHost}
+  brokenPort: ${brokenPort}
+  system:
+    username: ${system.username}
+    password: ${system.password}
+  client:
+    username: ${client.username}
+    password: ${client.password}

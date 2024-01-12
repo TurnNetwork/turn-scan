@@ -1,0 +1,32 @@
+#先创建网络usafe-net
+#docker network create -d bridge --subnet=172.16.0.0/24 usafe-net
+#1.构建镜像
+#tag=1.1.0 env=dev docker-compose build
+#2.运行容器
+#tag=1.1.0 env=dev docker-compose up -d
+#或者${tag}直接写死
+#1.构建镜像
+#docker-compose build
+#2.运行容器
+#docker-compose up -d
+#config下的配置文件通过cp命令从容器内拉取
+#docker cp usafe-consumer:/opt/config/application-dev.yml ${appdir}/config/application-dev.yml
+version: '3.7'
+services:
+  scan-api:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: scan-consumer
+    image: scan-consumer:${tag:-1.0.0}
+    restart: always
+    privileged: true
+    volumes:
+      - /home/qiliu/dockerImages/bubble-scan/scan-consumer/config:/opt/config
+      - /home/qiliu/dockerImages/bubble-scan/scan-consumer/public:/opt/public
+      - /home/qiliu/dockerImages/bubble-scan/scan-consumer/logs:/opt/logs
+    ports:
+      - 40010:40010
+    environment:
+      TZ: Asia/Shanghai
+      'spring.profiles.active': ${env:-platon}

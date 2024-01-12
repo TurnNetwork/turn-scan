@@ -1,0 +1,34 @@
+dependencies {
+    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:$mybatisSpringbootStarterVersion")
+    compile("com.github.pagehelper:pagehelper-spring-boot-starter:$pagehelperSpringbootStarterVersion")
+    implementation("org.springframework.boot:spring-boot-starter:$springbootVersion")
+    implementation("org.springframework.boot:spring-boot-starter-jdbc:$springbootVersion")
+//    compile "com.turn.sdk:core:$alayaClientVersion"
+    compile fileTree(dir: 'lib', includes: ['*.jar'])
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.9.8'
+    compile group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
+    compile group: 'org.hibernate.validator', name: 'hibernate-validator', version: '7.0.0.Final'
+    compile "com.alibaba:druid-spring-boot-starter:$druidVersion"
+    testCompile "mysql:mysql-connector-java:$mysqlConnectorVersion"
+    testCompile "org.springframework:spring-test:$springbootVersion"
+    testCompile "org.springframework.boot:spring-boot-test:$springbootVersion"
+    testCompile "org.springframework.boot:spring-boot-starter-test:$springbootVersion"
+    compile "com.squareup.okhttp3:okhttp:$okhttpVersion"
+    compile "com.squareup.okhttp3:logging-interceptor:$okhttpVersion"
+    compile "org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion"
+    compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+    compile "io.reactivex:rxjava:$rxjavaVersion"
+    compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: '2.2.21'
+    compile group: 'org.java-websocket', name: 'Java-WebSocket', version: '1.3.8'
+}
+
+sonarqube {
+    properties {
+        property "sonar.exclusions", "src/main/java/**/dao/**," +
+                "src/main/java/**/param/**," +
+                "src/main/java/**/dto/**," +
+                "src/main/java/**/bean/**," +
+                "src/main/java/**/utils/ClassUtil.java," +
+                "**/RedisImportService.java"
+    }
+}

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.turn.browser.dao.custommapper.SyncTokenInfoMapper">
+    <update id="syncTokenTxCount">
+        <foreach collection="addressParams" item="item" index="index">
+            update `address` set `token_qty` = #{item.tokenQty} where `address` = #{item.address};
+        </foreach>
+        <foreach collection="tokenParams" item="item" index="index">
+            update `erc20_token` set `tx_count` = #{item.txCount} where `address` = #{item.address};
+        </foreach>
+        <foreach collection="tokenAddressParams" item="item" index="index">
+            update `erc20_token_address_rel` set `tx_count` = #{item.txCount}
+            where `contract` = #{item.contract} and `address` = #{item.address};
+        </foreach>
+    </update>
+    <update id="updateTotalSupply">
+        <foreach collection="totalSupplyParams" item="item" index="index">
+            update `erc20_token` set `total_supply` = #{item.totalSupply} where `address` = #{item.address};
+            update `erc20_token_address_rel` set `total_supply` = #{item.totalSupply} where `contract` = #{item.address};
+        </foreach>
+    </update>
+
+    <update id="updateTokenTotalSupply">
+        <foreach collection="totalSupplyParams" item="item" index="index">
+            update `token` set `total_supply` = #{item.totalSupply},`update_time` = #{item.updateTime} where `address` = #{item.address};
+        </foreach>
+    </update>
+
+    <update id="updateAddressBalance">
+        <foreach collection="list" item="item" index="index" separator=";">
+            update `token_holder`
+            <set>
+                `balance` = #{item.balance},
+                `update_time` = #{item.updateTime}
+            </set>
+            where token_address=#{item.tokenAddress,jdbcType=VARCHAR} AND address=#{item.address,jdbcType=VARCHAR}
+        </foreach>
+    </update>
+
+    <update id="updateTokenInventory">
+        <foreach collection="list" item="item" index="index" separator=";">
+            update `token_inventory`
+            <set>
+                `image` = #{item.image},
+                `description` = #{item.description},
+                `name` = #{item.name},
+                `update_time` = #{item.updateTime}
+            </set>
+            where token_address=#{item.tokenAddress,jdbcType=VARCHAR} AND token_id=#{item.tokenId}
+        </foreach>
+    </update>
+
+    <select id="findTokenHolder" resultType="com.turn.browser.task.bean.TokenHolderNum">
+        SELECT token_address as tokenAddress,COUNT(1) as holderNum FROM token_holder GROUP BY token_address;
+    </select>
+
+    <update id="updateTokenHolder">
+        <foreach collection="list" item="item" index="index" separator=";">
+            update `token`
+            <set>
+                `holder` = #{item.holderNum},
+                `update_time` = #{item.updateTime}
+            </set>
+            where address = #{item.tokenAddress}
+        </foreach>
+    </update>
+
+    <select id="findTokenHolderType" resultType="com.turn.browser.task.bean.TokenHolderType">
+        SELECT
+            a.token_address as tokenAddress,
+            a.address as address,
+            a.balance as balance,
+            a.create_time as createTime,
+            a.update_time as updateTime,
+            a.token_tx_qty as tokenTxQty,
+            b.type AS type
+        FROM
+            token_holder a
+                LEFT JOIN token b ON a.token_address = b.address;
+    </select>
+
+</mapper>

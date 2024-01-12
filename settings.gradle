@@ -1,0 +1,15 @@
+pluginManagement {
+	repositories {
+		gradlePluginPortal()
+	}
+}
+rootProject.name = 'bubble-scan'
+include 'scan-agent'
+include 'scan-api'
+include 'scan-common'
+include 'scan-generator'
+include 'scan-service'
+include 'scan-job'
+include 'scan-subchain'
+include 'scan-consumer'
+

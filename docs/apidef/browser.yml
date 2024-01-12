@@ -1,0 +1,4359 @@
+swagger: '2.0'
+info:
+  version: 'v_VERSION_ Build #_COMMIT_ID_'
+  title: Browser API documentation
+  description:
+host: localhost:40010
+basePath: "_BASE_PATH_"
+
+schemes:
+  - http
+
+#Define interface path
+paths:
+  /config.json:
+    get:
+      operationId: websiteConfig
+      tags:
+        - Website configuration
+      summary: Website configuration
+      description: |
+        Website configuration
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: <a href="config.json">config.json</a>
+  #Home page interface
+  /home/queryNavigation:
+    post:
+      operationId: queryNavigation
+      tags:
+        - Home page interface
+      summary: Search navigation
+      description: |
+        1. Function: Return to navigation information through the query string entered by the user<br/>
+        2. Instructions for using the interface: use the type content returned by the interface to query the details after calling the corresponding interface.<br/>
+          type=block，Query the block details interface through the returned height value.<br/>
+          type=transaction，Query transaction details interface through the returned txHash value<br/>
+          type=address，Query the address details interface through the returned address value;<br/>
+          type=staking，Query the certifier details interface through the returned nodeId value;<br/>
+        3. Implementation logic:<br/>
+          When the input parameter is an integer type, query the block table in mysql<br/>
+          When the input parameter is an address type, query the address table in mysql<br/>
+          When the input parameter is a public key type, query the staking table in mysql<br/>
+          When the input parameter is hash type, query the transaction table in mysql. If there is no query in the block table in mysql<br/>
+          If it is not found above, query the staking table in mysql through the node name<br/>
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/QueryNavigationParam'
+      responses:
+        '200':
+          description: Return query details
+          schema:
+            $ref: '#/definitions/QueryNavigationResult'
+  /home/blockStatistic:
+    post:
+      operationId: blockStatistic
+      tags:
+        - Home page interface
+      summary: Block trend（websocket）
+      description: |
+        websocket call:/topic/block/statistic/new<br/>
+        1. Function: Push the latest 50 block trend data<br/>
+        2. Implement logic:<br/>
+         Query the redis structure: browser:chain[chain ID]:blocks<br/>
+         Push the full amount once every 5 seconds<br/>
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Return to push details
+          schema:
+            $ref: '#/definitions/BlockTrendPushResult'
+  /home/chainStatistic:
+    post:
+      operationId: chainStatistic
+      tags:
+        - Home page interface
+      summary: Basic data（websocket）
+      description: |
+        websocket call:/topic/chain/statistic/new<br/>
+        1. Function: Push basic blockchain data<br/>
+        2. Implement logic:<br/>
+         Query the redis structure: browser:networkstat<br/>
+         Push the full amount once every 5 seconds
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Return to push details
+          schema:
+            $ref: '#/definitions/ChainPushResult'
+  /home/stakingList:
+    post:
+      operationId: stakingList
+      tags:
+        - Home page interface
+      summary: Validator list（websocket）
+      description: |
+        wesocket call:/topic/staking/list/new<br/>
+        1. Function: push the latest 8 validator information<br/>
+        2. Implement logic:<br/>
+         Query the node table in mysql<br/>
+         Query based on status and consensus validator identification<br/>
+         Sort according to the first-level sorting pledge + total commission amount, the second-level sorting is sorted according to the version number, and the third-level sorting is based on the pledge index in reverse order<br/>
+         Push the full amount once every 5 seconds<br/>
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Return to push details
+          schema:
+            $ref: '#/definitions/StakingPushResult'
+  #Address related interface
+  /address/details:
+    post:
+      operationId: details
+      tags:
+        - Address interface
+      summary: Query address details
+      description: Implement logic
+       Query the address table in mysql
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/AddressDetailParam'
+      responses:
+        '200':
+          description: Return address details
+          schema:
+            $ref: '#/definitions/AddressDetailResult'
+  /address/rpplanDetail:
+    post:
+      operationId: rpplanDetail
+      tags:
+        - address interface
+      summary: Address lock details
+      description: Implement logic：
+        1. Query the rpplan table in mysql<br/>
+        2. Query the real-time balance on the chain<br/>
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/RpplanDetailParam'
+      responses:
+        '200':
+          description: Return address details
+          schema:
+            $ref: '#/definitions/RpplanDetailResult'
+  #Built-in address related interface
+  /internalAddress/foundationInfo:
+    post:
+      operationId: internalAddress
+      tags:
+        - Built-in address interface
+      summary: Query built-in account information
+      description: Implementation logic
+        Query the internalAddress table in mysql
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/PageReq'
+      responses:
+        '200':
+          description: Return address details
+          schema:
+            $ref: '#/definitions/InternalAddressRespResult'
+  #Block related interface
+  /block/blockList:
+    post:
+      operationId: blockList
+      tags:
+        - Block interface
+      summary: block list
+      description: Implement logic：|
+        Query redis structure：browser:blocks
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/BlockListParam'
+      responses:
+        '200':
+          description: Return block list
+          schema:
+            $ref: '#/definitions/BlockListResult'
+  /block/blockListByNodeId:
+    post:
+      operationId: blockListByNodeId
+      tags:
+        - Block interface
+      summary: Node’s block list
+      description: Implement logic：|
+        Query es block index
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/NodeBlockListParam'
+      responses:
+        '200':
+          description: Return block list
+          schema:
+            $ref: '#/definitions/BlockListResult'
+  /block/blockListByNodeIdDownload:
+    get:
+      operationId: blockListByNodeIdDownload
+      tags:
+        - Block interface
+      summary: Export node’s block list
+      description: Implement logic：|
+        Query es block index
+      produces:
+        - application/json
+      parameters:
+        - name: nodeId
+          description: Node ID
+          in: query
+          type: string
+          required: true
+        - name: date
+          description: Data end date
+          in: query
+          type: string
+          required: true
+        - name: local
+          description: Region| en or zh-cn
+          in: query
+          type: string
+          required: true
+        - name: timeZone
+          description: Time zone
+          in: query
+          type: string
+          required: true
+        - name: token
+          description: token
+          in: query
+          type: string
+          required: false
+      responses:
+        '200':
+          description: Return binary file stream
+  /block/blockDetails:
+    post:
+      operationId: blockDetails
+      tags:
+        - Block interface
+      summary: Block details
+      description: Implement logic：|
+        Query es block index
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/BlockDetailParam'
+      responses:
+        '200':
+          description: Return block details
+          schema:
+            $ref: '#/definitions/BlockDetailResult'
+  /block/blockDetailNavigate:
+    post:
+      operationId: blockDetailNavigate
+      tags:
+        - Block interface
+      summary: Jump forward and backward to browse block details
+      description: Implement logic：|
+        Query es block index
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/BlockDetailNavigateParam'
+      responses:
+        '200':
+          description: Return block details
+          schema:
+            $ref: '#/definitions/BlockDetailResult'
+
+  #Token related interfaces
+  /token/list:
+    post:
+      operationId: tokenList
+      tags:
+        - Token interface
+      summary: Token list
+      description: Implement logic：|
+        Query data in mysql<br/>
+        Query the list of tokens that can be displayed. Whether display is allowed needs to be associated with the is_show_in_scan field in the token_expand table<br/>
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/TokenListParam'
+      responses:
+        '200':
+          description: Return block list
+          schema:
+            $ref: '#/definitions/TokenListResult'
+  /token/detail:
+    post:
+      operationId: tokenDetail
+      tags:
+        - Token interface
+      summary: Token details
+      description: Implement logic：|
+        Query the MySQL database and return additional additional information
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/TokenDetailParam'
+      responses:
+        '200':
+          description: Return token details
+          schema:
+            $ref: '#/definitions/TokenDetailResult'
+  /token/arc20-tx/list:
+    post:
+      operationId: arc20TxList
+      tags:
+        - Token interface
+      summary: ARC20 transaction list
+      description: Implement logic：|
+        Query index data in ES<br/>
+        If the contract address is passed in, all transfer records in the current contract will be returned<br/>
+        If a user address is passed in, the address will be returned as the transfer deduction or the recipient's token transfer record<br/>
+        If both exist, return the transfer record of the address in the current contract<br/>
+        If the contract address and user address, all transfer records are returned<br/>
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/TokenTransferListParam'
+      responses:
+        '200':
+          description: Return to contract list
+          schema:
+            $ref: '#/definitions/TokenTransferListResult'
+  /token/arc20-tx/export:
+    get:
+      operationId: arc20TxExport
+      tags:
+        - Token interface
+      summary: ARC20 transaction list export
+      description:
+      produces:
+        - application/json
+      parameters:
+        - name: address
+          description: wallet address
+          in: query
+          type: string
+          required: false
+        - name: contract
+          description: Contract address
+          in: query
+          type: string
+          required: false
+        - name: date
+          description: Data end date
+          in: query
+          type: string
+          required: true
+        - name: local
+          description: Region| en or zh-cn
+          in: query
+          type: string
+          required: true
+        - name: timeZone
+          description: Time zone
+          in: query
+          type: string
+          required: true
+        - name: token
+          description: token
+          in: query
+          type: string
+          required: false
+      responses:
+        '200':
+          description: Returns a binary data stream
+  /token/arc721-tx/list:
+    post:
+      operationId: arc721TxList
+      tags:
+        - Token interface
+      summary: ARC721 transaction list
+      description: Implement logic：|
+        Query index data in ES<br/>
+        If Contract address is passed in, all transfer records in the current contract will be returned<br/>
+        If a user address is passed in, the address will be returned as the transfer deduction or the recipient's token transfer record<br/>
+        If you pass in Contract address and tokenId, all transfer records of tokenId in the current contract will be returned<br/>
+        If both exist, the return address is the transfer record in the current contract (no such scenario yet)<br/>
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/721TokenTransferListParam'
+      responses:
+        '200':
+          description: Return to contract list
+          schema:
+            $ref: '#/definitions/721TokenTransferListResult'
+  /token/arc721-tx/export:
+    get:
+      operationId: arc721TxExport
+      tags:
+        - Token interface
+      summary: ARC721 transaction list export
+      description: Implement logic：|
+        Query index data in ES<br/>
+        If Contract address is passed in, all transfer records in the current contract will be returned<br/>
+        If a user address is passed in, the address will be returned as the transfer deduction or the recipient's token transfer record<br/>
+        If both exist, the return address is the transfer record in the current contract (no such scenario yet)<br/>
+      produces:
+        - application/json
+      parameters:
+        - name: address
+          description: wallet address
+          in: query
+          type: string
+          required: false
+        - name: contract
+          description: Contract address
+          in: query
+          type: string
+          required: false
+        - name: date
+          description: Data end date
+          in: query
+          type: string
+          required: true
+        - name: local
+          description: Region| en or zh-cn
+          in: query
+          type: string
+          required: true
+        - name: timeZone
+          description: Time zone
+          in: query
+          type: string
+          required: true
+        - name: token
+          description: token
+          in: query
+          type: string
+          required: false
+        - name: tokenId
+          description: token id
+          in: query
+          type: string
+          required: false
+      responses:
+        '200':
+          description: Returns a binary data stream
+  /token/holder/list:
+    post:
+      operationId: tokenHolderList
+      tags:
+        - Token interface
+      summary: Token holder list
+      description: Implement logic：|
+        - Query data in database
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/TokenHolderListParam'
+      responses:
+        '200':
+          description: Return to contract list
+          schema:
+            $ref: '#/definitions/TokenHolderListResult'
+  /token/holder/export:
+    get:
+      operationId: tokenHolderExport
+      tags:
+        - Token interface
+      summary: Token holder list export
+      description: Implement logic：|
+        Query index data in ES<br/>
+        If Contract address is passed in, all transfer records in the current contract will be returned<br/>
+        If a user address is passed in, the address will be returned as the transfer deduction or the recipient's token transfer record<br/>
+        If both exist, the return address is the transfer record in the current contract (no such scenario yet)<br/>
+      produces:
+        - application/json
+      parameters:
+        - name: contract
+          description: Contract address
+          in: query
+          type: string
+          required: true
+        - name: local
+          description: Region| en or zh-cn
+          in: query
+          type: string
+          required: true
+        - name: timeZone
+          description: Time zone
+          in: query
+          type: string
+          required: true
+        - name: token
+          description: token
+          in: query
+          type: string
+          required: false
+      responses:
+        '200':
+          description: Return binary data
+  /token/holder-token/list:
+    post:
+      operationId: holderTokenList
+      tags:
+        - Token interface
+      summary: Token list of holders
+      description: Implement logic：|
+        Query data in database<br/>
+        If Contract address is passed in, all holder records in the current contract will be returned<br/>
+        If a user address is passed in, the token record held by the address is returned<br/>
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/HolderTokenListParam'
+      responses:
+        '200':
+          description: Return the holder token list
+          schema:
+            $ref: '#/definitions/HolderTokenListResult'
+  /token/holder-token/export:
+    get:
+      operationId: holderTokenExport
+      tags:
+        - Token interface
+      summary: Export the holder’s Token list
+      description: Implement logic：|
+        Query index data in ES<br/>
+        If Contract address is passed in, all transfer records in the current contract will be returned<br/>
+        If a user address is passed in, the address will be returned as the transfer deduction or the recipient's token transfer record<br/>
+        If both exist, the return address is the transfer record in the current contract (no such scenario yet)<br/>
+      produces:
+        - application/json
+      parameters:
+        - name: address
+          description: Contract address
+          in: query
+          type: string
+          required: true
+        - name: local
+          description: Region| en or zh-cn
+          in: query
+          type: string
+          required: true
+        - name: timeZone
+          description: Time zone
+          in: query
+          type: string
+          required: true
+        - name: token
+          description: token
+          in: query
+          type: string
+          required: false
+        - name: type
+          description: Contract type, value erc20 or erc721
+          in: query
+          type: string
+          required: false
+      responses:
+        '200':
+          description: Return binary data
+  /token/arc721-inventory/list:
+    post:
+      operationId: arc721InventoryList
+      tags:
+        - Token interface
+      summary: ARC721 Stock List
+      description: Implement logic：|
+        Query data in mysql<br/>
+        If Contract address is passed in, all tokenId records in the current contract will be returned<br/>
+        If you pass in Contract address and tokenId, the record of tokenId in the current contract will be returned<br/>
+        If the user address is passed in, all tokenId records in the current contract will be returned<br/>
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/721TokenIdListParam'
+      responses:
+        '200':
+          description: Return to contract list
+          schema:
+            $ref: '#/definitions/721TokenIdListResult'
+  /token/arc721-inventory/export:
+    get:
+      operationId: arc721InventoryExport
+      tags:
+        - Token interface
+      summary: ARC721 inventory list export
+      description: Implement logic：|
+        Query data in mysql<br/>
+        If Contract address is passed in, all tokenId records in the current contract will be returned<br/>
+        If you pass in Contract address and tokenId, the record of tokenId in the current contract will be returned<br/>
+        If the user address is passed in, all tokenId records in the current contract will be returned<br/>
+      produces:
+        - application/json
+      parameters:
+        - name: contract
+          description: Contract address
+          in: query
+          type: string
+          required: true
+        - name: address
+          description: Contract address
+          in: query
+          type: string
+          required: true
+        - name: tokenId
+          description: Contract address
+          in: query
+          type: string
+          required: true
+        - name: local
+          description: Region| en or zh-cn
+          in: query
+          type: string
+          required: true
+        - name: timeZone
+          description: Time zone
+          in: query
+          type: string
+          required: true
+        - name: token
+          description: token
+          in: query
+          type: string
+          required: false
+      responses:
+        '200':
+          description: Return binary data
+  /token/arc721-inventory/detail:
+    post:
+      operationId: arc721InventoryDetail
+      tags:
+        - Token interface
+      summary: ARC721 Stock details
+      description: Implement logic：|
+        - Query data in database
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/721TokenIdDetailParam'
+      responses:
+        '200':
+          description: Return to contract list
+          schema:
+          $ref: '#/definitions/721TokenIdDetailResult'
+
+
+  #Governance parameter configuration
+  /extra/queryConfig:
+    post:
+      operationId: queryConfig
+      tags:
+        - Configuration parameter interface
+      summary: Query configuration details
+      description: Implement logic：|
+        - Query the config table in mysql
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Return to configuration list
+          schema:
+            $ref: '#/definitions/QueryConfigResult'
+  #Proposal related interfaces
+  /proposal/proposalList:
+    post:
+      operationId: proposalList
+      tags:
+        - Proposal interface
+      summary: Proposal list
+      description: Implement logic：|
+        Query the proposal table in mysql
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/PagingParam'
+      responses:
+        '200':
+          description: Return to proposal list
+          schema:
+            $ref: '#/definitions/ProposalListResult'
+  /proposal/proposalDetails:
+    post:
+      operationId: proposalDetails
+      tags:
+        - Proposal interface
+      summary: Proposal details
+      description: Implement logic：|
+        Query the proposal table in mysql
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/ProposalDetail2Param'
+      responses:
+        '200':
+          description: Return block details
+          schema:
+            $ref: '#/definitions/ProposalDetailResult'
+  /proposal/voteList:
+    post:
+      operationId: voteList
+      tags:
+        - Proposal interface
+      summary: voting list
+      description: Implement logic：|
+        Query the vote table in mysql
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/VoteListParam'
+      responses:
+        '200':
+          description: Return to voting list
+          schema:
+            $ref: '#/definitions/VoteListResult'
+  #Staking verifier related interfaces
+  /staking/statistic:
+    post:
+      operationId: statistic
+      tags:
+        - Validator interface
+      summary: Aggregate data（websocket）
+      description: |
+        wesocket call:/topic/staking/statistic/new<br/>
+        1. Function: push summary data<br/>
+        2. Implement logic：<br/>
+         Query the redis structure: browser:[Application version]:[Application running configuration name]:networkstat<br/>
+         Push the full amount once every 5 seconds
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Return to statistical details
+          schema:
+            $ref: '#/definitions/StakingStatisticResult'
+  /staking/aliveStakingList:
+    post:
+      operationId: aliveStakingList
+      tags:
+        - Validator interface
+      summary: Real-time validator list
+      description: |
+        1. Function: Real-time verifier list query<br/>
+        2. Implement logic：<br/>
+          Query the node table in mysql and associate the staking table, sorting in the process
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/AliveStakingListParam'
+      responses:
+        '200':
+          description: Return to push details
+          schema:
+            $ref: '#/definitions/AliveStakingListResult'
+  /staking/historyStakingList:
+    post:
+      operationId: historyStakingList
+      tags:
+        - Validator interface
+      summary: Historical validator list
+      description: |
+        1. Function: Query historical certifier list<br/>
+        2. Implement logic：<br/>
+          Query the node table in mysql and associate the staking table
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/HistoryStakingListParam'
+      responses:
+        '200':
+          description: Return to historical node details
+          schema:
+            $ref: '#/definitions/HistoryStakingListResult'
+  /staking/lockedStakingList:
+    post:
+      operationId: lockedStakingList
+      tags:
+        - Validator interface
+      summary: Locked validator list
+      description: |
+        1. Function: Query locked certifier list<br/>
+        2. Implement logic：<br/>
+          Query the node table in mysql and associate the staking table
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/LockedStakingListParam'
+      responses:
+        '200':
+          description: Return node details
+          schema:
+            $ref: '#/definitions/LockedStakingListResult'
+  /staking/stakingDetails:
+    post:
+      operationId: stakingDetails
+      tags:
+        - Validator interface
+      summary: Validator details
+      description: |
+        1. Function: Verifier details query<br/>
+        2. Implement logic：<br/>
+          Query the node table in mysql and associate the staking table
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/StakingDetailParam'
+      responses:
+        '200':
+          description: Return node details
+          schema:
+            $ref: '#/definitions/StakingDetailResult'
+  /staking/stakingOptRecordList:
+    post:
+      operationId: stakingOptRecordList
+      tags:
+        - Validator interface
+      summary: Node operation record
+      description: |
+        1. Function: Node operation record query<br/>
+        2. Implement logic：<br/>
+          Query the node_opt table in mysql
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/StakingOptRecordListParam'
+      responses:
+        '200':
+          description: Return node details
+          schema:
+            $ref: '#/definitions/StakingOptRecordListResult'
+  /staking/delegationListByStaking:
+    post:
+      operationId: delegationListByStaking
+      tags:
+        - Validator interface
+      summary: Validator’s delegation list
+      description: |
+        1. Function: Validator-related delegation list query<br/>
+        2. Implement logic：<br/>
+         Query the delegation table association staking in mysql and query the records of delegation.is_history = false<br/>
+         Staking and delegation are one-to-many, and delegation fields need to be superimposed<br/>
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/DelegationListByStakingParam'
+      responses:
+        '200':
+          description: Return node details
+          schema:
+            $ref: '#/definitions/DelegationListByStakingListResult'
+  /staking/delegationListByAddress:
+    post:
+      operationId: delegationListByAddress
+      tags:
+        - Validator interface
+      summary: Address-related commission list
+      description: |
+        1. Function: Address-related commission list query<br/>
+        2. Implement logic：<br/>
+          Query the delegation table association staking in mysql and query the records of delegation.is_history = false
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/DelegationListByAddressParam'
+      responses:
+        '200':
+          description: Return node details
+          schema:
+            $ref: '#/definitions/DelegationListByAddressListResult'
+
+  #Transaction related interface
+  /transaction/transactionList:
+    post:
+      operationId: transactionList
+      tags:
+        - Transaction interface
+      summary: transaction list
+      description: |
+        1. Function: Transaction list query<br/>
+        2. Implement logic：<br/>
+          Query the redis structure: browser:transactions<br/>
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/TransactionListParam'
+      responses:
+        '200':
+          description: Return to transaction details
+          schema:
+            $ref: '#/definitions/TransactionListResult'
+  /transaction/transactionListByBlock:
+    post:
+      operationId: transactionListByBlock
+      tags:
+        - Transaction interface
+      summary: Block transaction list
+      description: |
+        1. Function: Block transaction list query<br/>
+        2. Implement logic：<br/>
+          Query the transaction table in mysql
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/TransactionListByBlockParam'
+      responses:
+        '200':
+          description: Return to transaction details
+          schema:
+            $ref: '#/definitions/TransactionListResult'
+  /transaction/transactionListByAddress:
+    post:
+      operationId: transactionListByAddress
+      tags:
+        - Transaction interface
+      summary: Address's transaction list
+      description: |
+        1. Function: Address transaction list query<br/>
+        2. Implement logic：<br/>
+          Query the transaction table in mysql
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/TransactionListByAddressParam'
+      responses:
+        '200':
+          description: Return to transaction details
+          schema:
+            $ref: '#/definitions/TransactionListResult'
+  /transaction/addressTransactionDownload:
+    get:
+      operationId: addressTransactionDownload
+      tags:
+        - Transaction interface
+      summary: Export address transaction list
+      description: Implement logic：|
+        1. Function 
+        Query the transaction list of the exported address<br/>
+        2. Implement logic：<br/>
+        Query the transaction table in mysql
+      produces:
+        - application/json
+      parameters:
+        - name: address
+          description: wallet address
+          in: query
+          type: string
+          required: false
+        - name: date
+          description: Data end date
+          in: query
+          type: string
+          required: true
+        - name: local
+          description: Region| en or zh-cn
+          in: query
+          type: string
+          required: true
+        - name: timeZone
+          description: Time zone
+          in: query
+          type: string
+          required: true
+        - name: token
+          description: token
+          in: query
+          type: string
+          required: false
+      responses:
+        '200':
+          description: Returns a binary data stream
+  /transaction/transactionDetails:
+    post:
+      operationId: transactionDetails
+      tags:
+        - Transaction interface
+      summary: Transaction Details
+      description: |
+        1. Query the transaction table in mysql<br/>
+          If txType = 0 (transfer): The transfer information is taken from the basic information<br/>
+          If txType = 1, 2, 5 (contract creation and execution): the contract information is taken from the basic information<br/>
+          If txType = 1000 (create validator): create validator = nodeId + nodeName + externalId + benefitAddr + programVersion + website + details + value<br/>
+          If txType = 1001 (edit validator): edit validator = nodeId + nodeName + externalId + benefitAddr + programVersion + website + details<br/>
+          If txType = 1002 (increase pledge): increase pledge = nodeId + nodeName + value<br/>
+          If txType = 1003 (exit validator): Exit verification = nodeId + nodeName + applyAmount + redeemLocked + redeemStatus + redeemUnLockedBlock<br/>
+          - 1003 It is necessary to query the validator information through the txHash associated staking table<br/>
+          If txType = 1004 (delegated): validator = nodeId + nodeName<br/>
+          If txType = 1005 (delegated redemption): delegated redemption = nodeId + nodeName + applyAmount + redeemLocked + redeemStatus<br/>
+          - 1005 It is necessary to query the redemption information by associating the un_delegation table with txHash<br/>
+          If txType = 2000, 2001, 2002 (create proposal): create proposal = nodeId + nodeName + txType + proposalUrl + proposalHash + proposalNewVersion<br/>
+          If txType = 2003 (voting proposal): voting proposal = nodeId + nodeName + txType + proposalUrl + proposalHash + proposalNewVersion + proposalOption<br/>
+          If txType = 2004 (version declaration): version declaration = nodeId + nodeName + declareVersion<br/>
+          If txType = 4000 (create a lock): create a lock = RPAccount + value + RPPlan<br/>
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/TransactionDetailsParam'
+      responses:
+        '200':
+          description: Return to historical node details
+          schema:
+            $ref: '#/definitions/TransactionDetailsResult'
+  /transaction/queryClaimByAddress:
+    post:
+      operationId: queryClaimByAddress
+      tags:
+        - Transaction interface
+      summary: List of addresses to receive rewards
+      description: |
+        1. Function: Query the list of rewards received by the address<br/>
+        2. Implement logic：<br/>
+         Query the reward table in es
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/QueryClaimByAddressParam'
+      responses:
+        '200':
+          description: Return to historical node details
+          schema:
+            $ref: '#/definitions/QueryClaimByAddressListResult'
+  /transaction/queryClaimByStaking:
+    post:
+      operationId: queryClaimByStaking
+      tags:
+        - Transaction interface
+      summary: Node-related rewards list
+      description: |
+        1. Function: Node-related reward list query<br/>
+        2. Implement logic：<br/>
+          Query delegation_reward in es
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/QueryClaimByStakingParam'
+      responses:
+        '200':
+          description: Return to reward list
+          schema:
+            $ref: '#/definitions/QueryClaimByStakingListResult'
+  #Micronode related interfaces
+  /micronode/statistic:
+    post:
+      operationId: statistic
+      tags:
+        - Micronode interface
+      summary: Aggregated data (websocket)
+      description: |
+        wesocket call:/topic/micronode/statistic/new<br/>
+        1. Function: push summary data<br/>
+        2. Implement logic：<br/>
+         Query the redis structure: browser:[Application version]:[Application running configuration name]:networkstat<br/>
+         Push the full amount once every 5 seconds
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Return to statistical details
+          schema:
+            $ref: '#/definitions/MicroNodeStatisticResult'
+  /micronode/aliveNodeList:
+    post:
+      operationId: aliveNodeList
+      tags:
+        - Micronode interface
+      summary: Real-time micronode list
+      description: |
+        1. Function: Real-time micro-node list query<br/>
+        2. Implement logic：<br/>
+          Query the micro_node table in mysql
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/AliveMicroNodeListReqParam'
+      responses:
+        '200':
+          description: Return to push details
+          schema:
+            $ref: '#/definitions/AliveMicroNodeListResult'
+  /micronode/microNodeDetails:
+    post:
+      operationId: microNodeDetails
+      tags:
+        - Micronode interface
+      summary: Micronode details
+      description: |
+        1. Function: Micro node details query<br/>
+        2. Implement logic：<br/>
+          Query the micro_node table in mysql
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/MicroNodeDetailsParam'
+      responses:
+        '200':
+          description: Return node details
+          schema:
+            $ref: '#/definitions/MicroNodeDetailResult'
+  /micronode/microNodeOptRecordList:
+    post:
+      operationId: microNodeOptRecordList
+      tags:
+        - Micronode interface
+      summary: Micronode operation records
+      description: |
+        1. Function: Micro-node operation record query<br/>
+        2. Implement logic：<br/>
+          Query the micro_node_opt table in mysql
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/MicroNodeOptRecordListParam'
+      responses:
+        '200':
+          description: Return node details
+          schema:
+            $ref: '#/definitions/MicroNodeOptRecordListResult'
+  #Game related interfaces
+  /addrGame/list:
+    post:
+      operationId: list
+      tags:
+        - game interface
+      summary: Query the details of the game list that the address participates in
+      description: |
+        1. Function: Query the details of the game list in which the address participates<br/>
+        2. Implement logic：<br/>
+          Query the addr_game table in mysql
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/QueryAddrGameListReq'
+      responses:
+        '200':
+          description: Return node details
+          schema:
+            $ref: '#/definitions/AddrGameDetailResp'
+  #bubble related interfaces
+  /bubble/list:
+    post:
+      operationId: bubbleList
+      tags:
+        - Bubble interface
+      summary: Query bubble list
+      description: |
+        1. Function: Query bubble list<br/>
+        2. Implement logic:<br/>
+          query es
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/BubbleListReq'
+      responses:
+        '200':
+          description: Returns Bubble list
+          schema:
+            $ref: '#/definitions/BubbleListResp'
+  #Sub-chain transaction list related interfaces
+  /subchain/subChainTxRecordList:
+    post:
+      operationId: subChainTxRecordList
+      tags:
+        - subChain interface
+      summary: Query the transaction list of an address
+      description: |
+        1. Function: Query the transaction list of an address<br/>
+        2. Implement logic：<br/>
+          queryes
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/SubChainRecordListReq'
+      responses:
+        '200':
+          description: Return to transaction list
+          schema:
+            $ref: '#/definitions/SubChainTxRecordListResp'
+  /subchain/subChainTxDetails:
+    post:
+      operationId: subChainTxDetails
+      tags:
+        - subChain interface
+      summary: Query transaction details based on transaction hash and bubbleId
+      description: |
+        1. Function: Query transaction details based on transaction hash and bubbleId<br/>
+        2. Implement logic：<br/>
+          queryes
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: parameter object
+          in: body
+          schema:
+            $ref: '#/definitions/SubChainTransactionDetailsReq'
+      responses:
+        '200':
+          description: Return to transaction list
+          schema:
+            $ref: '#/definitions/SubChainTxDetailsResp'
+#Entity definition
+definitions:
+  #Common parameters object
+  PagingParam:
+    type: object
+    description: Paging parameters
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+  #Address related
+  AddressDetailParam:
+    type: object
+    description: Address details query parameter object
+    properties:
+      address:
+        description: Account address (required)
+        type: string
+  AddressDetail:
+    type: object
+    description: address details object
+    properties:
+      type:
+        description: Address type 1-Account 2-Built-in contract 3-EVM contract 4-WASM contract 5-EVM-Token 6-WASM-Token
+        type: string
+      balance:
+        description: Balance (unit TURN)
+        type: string
+      restrictingBalance:
+        description: Locked balance(unit TURN)
+        type: string
+      stakingValue:
+        description: Amount pledged
+        type: string
+      delegateValue:
+        description: The amount entrusted
+        type: string
+      redeemedValue:
+        description: Amount in redemption
+        type: string
+      txQty:
+        description: Total number of transactions
+        type: integer
+      transferQty:
+        description: Total number of transfer transactions
+        type: integer
+      delegateQty:
+        description: Total number of entrusted transactions
+        type: integer
+      stakingQty:
+        description: Total number of validator transactions
+        type: integer
+      proposalQty:
+        description: Total number of governance transactions
+        type: integer
+      hasErc20:
+        description: Is it erc20
+        type: boolean
+      erc20TxQty:
+        description: Total number of erc20 transactions
+        type: integer
+      hasErc721:
+        description: Is it erc721
+        type: boolean
+      erc721TxQty:
+        description: Total number of erc20 transactions
+        type: integer
+      candidateCount:
+        description: Delegated validator
+        type: integer
+      delegateHes:
+        description: Unlocked delegates (TURN)
+        type: string
+      delegateLocked:
+        description: Delegate Locked（TURN）
+        type: string
+      delegateUnlock:
+        description: Delegate Unlock（TURN）
+        type: string
+      delegateReleased:
+        description: Delegate Released（TURN）
+        type: string
+      delegateClaim:
+        description: Delegate Claim（TURN）
+        type: string
+      haveReward:
+        description: Collect commission rewards cumulatively（TURN）
+        type: string
+      contractName:
+        description: Contract Name
+        type: string
+      contractCreate:
+        description: Contract creator address
+        type: string
+      contractCreateHash:
+        description: Contract creation hash
+        type: string
+      contractBin:
+        description: Contract Bin
+        type: string
+      isRestricting:
+        description: Whether there is hedging transaction 0-no 1-yes
+        type: integer
+      isDestroy:
+        description: Whether it is destroyed. 1 means self-destruction, 0 means normal.
+        type: integer
+      destroyHash:
+        description: Destroy Hash
+        type: string
+      tokenSymbol:
+        description: Token Symbol
+        type: string
+      tokenName:
+        description: Token Name
+        type: string
+  AddressDetailResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        $ref: '#/definitions/AddressDetail'
+  RpplanDetailParam:
+    type: object
+    description: Address lock details parameter object
+    properties:
+      address:
+        description: Account address (required)
+        type: string
+      pageNo:
+        description: Page number
+        type: integer
+      pageSize:
+        description: page size
+        type: integer
+  Rpplan:
+    type: object
+    description: List of lock-up plans
+    properties:
+      epoch:
+        description: Lock-up period
+        type: integer
+      amount:
+        description: Locked amount
+        type: string
+      blockNumber:
+        description: The lock-up period corresponds to the fast high end period * epoch
+        type: integer
+      estimateTime:
+        description: estimated time
+        type: integer
+  RpplanDetail:
+    type: object
+    description: Lockup details
+    properties:
+      restrictingBalance:
+        description: Locked balance (unit TURN)
+        type: string
+      stakingValue:
+        description: Lock-up pledge/entrustment (unit TURN)
+        type: string
+      underreleaseValue:
+        description: Under release (unit TURN)
+        type: string
+      totalValue:
+        description: Lockup plan total lockup (unit TURN)
+        type: string
+      total:
+        description: Total number of plans
+        type: string
+      RPPlan:
+        $ref: '#/definitions/RpplanDetail'
+  RpplanDetailResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        $ref: '#/definitions/RpplanDetail'
+  #Block related
+  BlockListParam:
+    type: object
+    description: Block list query parameter object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+  BlockDetail1:
+    type: object
+    description: block list
+    properties:
+      number:
+        description: block height
+        type: integer
+      timestamp:
+        description: Block time
+        type: integer
+      serverTime:
+        description: Current server time
+        type: integer
+      statTxQty:
+        description: Number of transactions
+        type: integer
+      size:
+        description: block size
+        type: integer
+      nodeId:
+        description: Block Node ID
+        type: string
+      nodeName:
+        description: Block producing node name
+        type: string
+      gasUsed:
+        description: gas Used
+        type: integer
+      statTxGasLimit:
+        description: The total gas available for all transactions in the block
+        type: integer
+      blockReward:
+        description: Block reward (unit AAA)
+        type: string
+  BlockListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      displayTotalCount:
+        description: Show total
+        type: integer
+      totalCount:
+        description: The total number of records less than or equal to 500000
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/BlockDetail1'
+  NodeBlockListParam:
+    type: object
+    description: Block query parameter object
+    properties:
+      nodeId:
+        description: Node ID(required)
+        type: string
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+  BlockDetailParam:
+    type: object
+    description: Block details query parameter object
+    properties:
+      number:
+        description: block height(required)
+        type: integer
+  BlockDetail:
+    type: object
+    description: Block details
+    properties:
+      number:
+        description: block height
+        type: integer
+      timestamp:
+        description: Block time
+        type: integer
+      txQty:
+        description: Total number of transactions within the block
+        type: integer
+      hash:
+        description: block hash
+        type: string
+      parentHash:
+        description: Parent block hash
+        type: string
+      nodeId:
+        description: Block Node ID
+        type: string
+      nodeName:
+        description: Block producing node name
+        type: string
+      timeDiff:
+        description: The difference between the current block time and the previous block time (milliseconds)
+        type: integer
+      size:
+        description: block size
+        type: integer
+      gasLimit:
+        description: gas Limit
+        type: integer
+      gasUsed:
+        description: gas Used
+        type: integer
+      statTxGasLimit:
+        description: The total gas available for all transactions in the block
+        type: integer
+      blockReward:
+        description: Block reward (unit AAA)
+        type: string
+      extraData:
+        description: Additional data
+        type: string
+      first:
+        description: Is the first record
+        type: boolean
+      last:
+        description: Whether the last record
+        type: boolean
+      transferQty:
+        description: Total number of intra-block transfer transactions
+        type: integer
+      delegateQty:
+        description: Total number of commissioned transactions within the block
+        type: integer
+      stakingQty:
+        description: Total number of validator transactions within the block
+        type: integer
+      proposalQty:
+        description: Total number of governance transactions within the block
+        type: integer
+      serverTime:
+        description: Current server time
+        type: integer
+  BlockDetailResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        $ref: '#/definitions/BlockDetail'
+  BlockDetailNavigateParam:
+    type: object
+    description: Jump forward and backward to browse block detailsparameter object
+    properties:
+      number:
+        description: block height(Required)
+        type: integer
+      direction:
+        description: Direction prev-previous, next-next (Required)
+        type: string
+  #Contract related
+  TokenDetailParam:
+    type: object
+    description: Token details query parameter object
+    properties:
+      address:
+        description: Contract address（Required fields）
+        type: string
+  TokenDetail1:
+    type: object
+    description: token Detail
+    properties:
+      type:
+        description: Contract type- erc20 or erc721
+        type: string
+      address:
+        description: Contract address
+        type: string
+      name:
+        description: Contract name
+        type: string
+      symbol:
+        description: contract symbol
+        type: string
+      decimal:
+        description: Contract decimal
+        type: integer
+      totalSupply:
+        description: Total contract issuance (after precision conversion)
+        type: string
+      icon:
+        description: Contract icon (base64 encoded)
+        type: string
+      creator:
+        description: Contract creator address
+        type: string
+      txHash:
+        description: Create the transaction hash of the contract
+        type: string
+      webSite:
+        description: Create the transaction hash of the contract
+        type: string
+      blockTimestamp:
+        description: Contract creation time (timestamp)
+        type: integer
+      createTime:
+        description: Contract entry time (timestamp)
+        type: integer
+      txCount:
+        description: Number of internal transfer transactions within the contract
+        type: integer
+      abi:
+        description: ABI description of the contract
+        type: string
+      binCode:
+        description: Contract binary code
+        type: string
+      isContractDestroy:
+        description: Whether the contract has been destroyed 0-no, 1-yes
+        type: integer
+      holder:
+        description: Number of holders
+        type: integer
+      sourceCode:
+        description: Contract source code
+        type: string
+  TokenDetailResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        $ref: '#/definitions/TokenDetail1'
+  TokenListParam:
+    type: object
+    description: Contract list query parameter object
+    properties:
+      type:
+        description: Contract type erc20 erc721(Required)
+        type: string
+        enum:
+          - erc20
+          - erc721
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+  TokenDetail2:
+    type: object
+    description: token Detail
+    properties:
+      address:
+        description: Contract address
+        type: string
+      name:
+        description: Contract name
+        type: string
+      symbol:
+        description: contract symbol
+        type: string
+      decimal:
+        description: Contract decimal
+        type: integer
+      totalSupply:
+        description: Total contract issuance (after precision conversion)
+        type: string
+      icon:
+        description: Contract icon (base64 encoded)
+        type: string
+      webSite:
+        description: The contract corresponds to the official website
+        type: string
+      details:
+        description: Contract description
+        type: string
+      holder:
+        description: Number of holders
+        type: integer
+  TokenListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total Count
+        type: integer
+      totalPages:
+        description: total Pages
+        type: integer
+      displayTotalCount:
+        description: Show the number of records that can be displayed
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/TokenDetail2'
+  TokenTransferListParam:
+    type: object
+    properties:
+      contract:
+        description: Contract address（Optional）
+        type: string
+      address:
+        description: User address (Optional, may be from or to when retrieving)
+        type: string
+      txHash:
+        description: Transaction hash (Optional, strong retrieval based on this hash if present)
+        type: string
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+  TokenTransferDetail:
+    type: object
+    properties:
+      txHash:
+        description: transaction hash
+        type: string
+      blockNumber:
+        description: block height
+        type: integer
+      txFrom:
+        description: from address
+        type: string
+      contract:
+        description: Contract address（It is also the transaction to address）
+        type: string
+      transferTo:
+        description: token receiving address
+        type: string
+      transferValue:
+        description: token Id
+        type: string
+      name:
+        description: Contract name
+        type: string
+      symbol:
+        description: contract symbol
+        type: string
+      decimal:
+        description: Contract decimal
+        type: string
+      blockTimestamp:
+        description: block time
+        type: integer
+      systemTimestamp:
+        description: system time
+        type: integer
+  TokenTransferListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total Count
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/TokenTransferDetail'
+  TokenHolderListParam:
+    type: object
+    properties:
+      contract:
+        description: Contract address（Optional）
+        type: string
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+  TokenHolderDetail:
+    type: object
+    properties:
+      address:
+        description: holder address
+        type: string
+      balance:
+        description: The balance value corresponding to the transaction
+        type: string
+      percent:
+        description: holding percentage
+        type: string
+  TokenHolderListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total Count
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/TokenHolderDetail'
+  HolderTokenListParam:
+    type: object
+    properties:
+      address:
+        description: Contract address（Optional）
+        type: string
+      type:
+        description: value erc20 or erc721 (Optional)
+        type: string
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+  HolderTokenDetail:
+    type: object
+    properties:
+      contract:
+        description: Contract address（It is also the transaction to address）
+        type: string
+      address:
+        description: address
+        type: string
+      decimal:
+        description: Contract decimal
+        type: integer
+      name:
+        description: Contract name
+        type: string
+      symbol:
+        description: contract symbol
+        type: string
+      balance:
+        description: The balance value corresponding to the transaction
+        type: string
+      txCount:
+        description: Number of transactions
+        type: integer
+      isContractDestroy:
+        description: Whether the contract to which the token belongs has been destroyed; 0-no, 1-yes
+        type: integer
+  HolderTokenListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total Count
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/HolderTokenDetail'
+  721TokenTransferListParam:
+    type: object
+    properties:
+      contract:
+        description: Contract address（Optional）
+        type: string
+      address:
+        description: User address (Optional, may be from or to when retrieving)
+        type: string
+      tokenId:
+        description: tokenId（Optional，Search for:tValue）
+        type: string
+      txHash:
+        description: Transaction hash (Optional, strong retrieval based on this hash if present)
+        type: string
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+  721TokenTransferListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total Count
+        type: integer
+      totalPages:
+        description: total Pages
+        type: integer
+      displayTotalCount:
+        description: Show the number of records that can be displayed
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/721TokenTransferDetail'
+  721TokenTransferDetail:
+    type: object
+    properties:
+      txHash:
+        description: transaction hash
+        type: string
+      blockNumber:
+        description: block height
+        type: integer
+      txFrom:
+        description: from address
+        type: string
+      contract:
+        description: Contract address（It is also the transaction to address）
+        type: string
+      transferTo:
+        description: token receiving address
+        type: string
+      tokenId:
+        description: token Id
+        type: string
+      name:
+        description: Contract name
+        type: string
+      symbol:
+        description: contract symbol
+        type: string
+      blockTimestamp:
+        description: block time
+        type: integer
+      systemTimestamp:
+        description: block time
+        type: integer
+  721TokenIdListParam:
+    type: object
+    properties:
+      contract:
+        description: Contract address（Optional）
+        type: string
+      address:
+        description: User address（Optional）
+        type: string
+      tokenId:
+        description: tokenId（Optional）
+        type: string
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+  721TokenIdDetail:
+    type: object
+    properties:
+      contract:
+        description: Contract address
+        type: string
+      address:
+        description: User address
+        type: string
+      tokenId:
+        description: tokenId
+        type: string
+      image:
+        description: token icon url
+        type: string
+      txCount:
+        description: Number of internal transfer transactions within the contract
+        type: integer
+
+
+  721TokenIdListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total Count
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/721TokenIdDetail'
+  721TokenIdDetailParam:
+    type: object
+    properties:
+      contract:
+        description: Contract address
+        type: string
+      tokenId:
+        description: tokenId
+        type: string
+  721TokenIdDetailResult:
+    type: object
+    properties:
+      contract:
+        description: Contract address
+        type: string
+      tokenId:
+        description: tokenId
+        type: string
+      name:
+        description: Contract name
+        type: string
+      symbol:
+        description: contract symbol
+        type: string
+      creator:
+        description: Contract creator address
+        type: string
+      txHash:
+        description: Create the transaction hash of the contract
+        type: string
+      webSite:
+        description: The contract corresponds to the official website
+        type: string
+      txCount:
+        description: Number of internal transfer transactions within the contract
+        type: integer
+  #Configuration related
+  ConfigDetail:
+    type: object
+    description: Configuration list
+    properties:
+      name:
+        description: parameter name
+        type: string
+      initValue:
+        description: initial value
+        type: string
+      staleValue:
+        description: old value
+        type: string
+      value:
+        description: new value
+        type: string
+      startValue:
+        description: start value
+        type: string
+      endValue:
+        description: end value
+        type: string
+      start:
+        description: Whether to include the start
+        type: string
+      end:
+        description: Whether to include the end
+        type: string
+  ModuleConfig:
+    type: object
+    description: Module configuration
+    properties:
+      module:
+        description: Module name
+        type: string
+      detail:
+        description: Configuration list
+        type: array
+        items:
+          $ref: '#/definitions/ConfigDetail'
+  ModuleConfigData:
+    type: object
+    description: Module configuration
+    properties:
+      config:
+        description: Module configuration list
+        type: array
+        items:
+          $ref: '#/definitions/ModuleConfig'
+  QueryConfigResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        $ref: '#/definitions/ModuleConfigData'
+  #Home page interface
+  QueryNavigationParam:
+    type: object
+    description: Home page search parameters
+    properties:
+      parameter:
+        description: user input(Required)
+        type: string
+  QueryNavigationDetail:
+    type: object
+    properties:
+      type:
+        description: block-block; transaction-transaction; address-address; staking-verifier; contract-Contract address
+        type: string
+      struct:
+        description: According to the type field, the data structure changes
+        type: object
+        properties:
+          number:
+            description: block height
+            type: integer
+          txHash:
+            description: transaction hash
+            type: string
+          address:
+            description: address
+            type: string
+          nodeId:
+            description: Node address
+            type: string
+  QueryNavigationResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        $ref: '#/definitions/QueryNavigationDetail'
+  BlockTrendPushDetail:
+    type: object
+    description: Block trend details
+    properties:
+      x:
+        description: block height
+        type: array
+        items:
+          $ref: integer
+      ya:
+        description: Block time
+        type: array
+        items:
+          $ref: integer
+      yb:
+        description: Transaction quantity
+        type: array
+        items:
+          $ref: integer
+  BlockTrendPushResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        $ref: '#/definitions/BlockTrendPushDetail'
+  ChainPushBlockDetail:
+    type: object
+    description: Pushed block details
+    properties:
+      isRefresh:
+        description: Whether to update, false does not update the block, true updates the block
+        type: boolean
+      number:
+        description: block height
+        type: integer
+      timestamp:
+        description: Block time
+        type: integer
+      serverTime:
+        description: server Time
+        type: integer
+      nodeId:
+        description: Block Node ID
+        type: string
+      nodeName:
+        description: Block producing node name
+        type: string
+      statTxQty:
+        description: Number of transactions
+        type: integer
+  ChainPushDetail:
+    type: object
+    properties:
+      currentNumber:
+        description: current block height
+        type: integer
+      nodeId:
+        description: Block Node ID
+        type: string
+      nodeName:
+        description: Block producing node name
+        type: string
+      txQty:
+        description: total number of transactions
+        type: integer
+      currentTps:
+        description: current TPS
+        type: integer
+      maxTps:
+        description: Maximum transaction TPS
+        type: integer
+      turnValue:
+        description: Current circulation
+        type: string
+      issueValue:
+        description: Current circulation
+        type: string
+      stakingDelegationValue:
+        description: Current total number of pledges = valid pledges + delegation
+        type: string
+      addressQty:
+        description: Number of addresses = valid pledges + delegation
+        type: integer
+      proposalQty:
+        description: Total number of proposals
+        type: integer
+      doingProposalQty:
+        description: Number of proposals in progress
+        type: integer
+      availableStaking:
+        description: Amount that can be pledged
+        type: string
+      nodeNum:
+        description: Number of nodes
+        type: integer
+      blockList:
+        description: Error message
+        type: array
+        items:
+          $ref: '#/definitions/ChainPushBlockDetail'
+  ChainPushResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        $ref: '#/definitions/ChainPushDetail'
+  StakingPushDetail:
+    type: object
+    description: Pushed verifier details
+    properties:
+      nodeId:
+        description: Block Node ID
+        type: string
+      nodeName:
+        description: Block producing node name
+        type: string
+      stakingIcon:
+        description: Verifier picture
+        type: string
+      ranking:
+        description: Node ranking
+        type: integer
+      expectedIncome:
+        description: Estimated annual revenue rate (calculated from the time when the validator joins)
+        type: number
+      isInit:
+        description: Is it an initialized verifier? If it is expectedIncome, no value will be displayed.
+        type: boolean
+      totalValue:
+        description: Total number of pledges = valid pledges + delegation
+        type: string
+  StakingPushData:
+    type: object
+    properties:
+      isRefresh:
+        description: false no need to refresh in full, true refresh in full
+        type: boolean
+      dataList:
+        description: node list
+        type: array
+        items:
+          $ref: '#/definitions/StakingPushDetail'
+  StakingPushResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        $ref: '#/definitions/StakingPushData'
+  #Proposal related
+  ProposalDetail1:
+    type: object
+    description: Proposal details
+    properties:
+      proposalHash:
+        description: Proposal internal identifier
+        type: string
+      topic:
+        description: Proposal title
+        type: string
+      description:
+        description: Proposal description
+        type: string
+      url:
+        description: github address https://github.com/ethereum/EIPs/blob/master/EIPS/eip-100.md PIP number eip-100
+        type: string
+      type:
+        description: Proposal type 1- text proposal 2- upgrade proposal 3- parameter proposal.
+        type: integer
+      status:
+        description: Status 1-Voting 2-Passed 3-Failed 4-Pre-upgrade 5-Upgrade completed 6-Canceled Passed=2 or 4 or 5
+        type: integer
+      curBlock:
+        description: Current block height
+        type: integer
+      endVotingBlock:
+        description: Block height for vote settlement
+        type: integer
+      newVersion:
+        description: Upgrade proposal upgraded version
+        type: integer
+      paramName:
+        description: parameter name
+        type: string
+      timestamp:
+        description: Proposal time
+        type: integer
+      pipNum:
+        description: pip num
+        type: integer
+      inBlock:
+        description: The height of the block
+        type: integer
+  ProposalListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total Count
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        $ref: '#/definitions/ProposalDetail1'
+  ProposalDetail2Param:
+    type: object
+    properties:
+      proposalHash:
+        description: The internal id of the proposal (Required)
+        type: string
+  ProposalDetail2:
+    type: object
+    description: Proposal details
+    properties:
+      proposalHash:
+        description: Proposal internal identifier
+        type: string
+      topic:
+        description: Proposal title
+        type: string
+      description:
+        description: Proposal description
+        type: string
+      url:
+        description: github address https://github.com/ethereum/EIPs/blob/master/EIPS/eip-100.md PIP number eip-100
+        type: string
+      type:
+        description: Proposal type 1-text proposal 2-upgrade proposal 3-parameter proposal.
+        type: integer
+      status:
+        description: Status 1-Voting 2-Passed 3-Failed 4-Pre-upgrade 5-Upgrade completed 6-Canceled Passed=2 or 4 or 5
+        type: integer
+      curBlock:
+        description: Current block height
+        type: integer
+      endVotingBlock:
+        description: Block height for vote settlement
+        type: integer
+      timestamp:
+        description: Proposal time
+        type: integer
+      activeBlock:
+        description: (if the vote passes) the effective block is high
+        type: integer
+      newVersion:
+        description: Upgrade proposal upgraded version
+        type: integer
+      paramName:
+        description: parameter name
+        type: string
+      currentValue:
+        description: Parameter current value
+        type: string
+      newValue:
+        description: the new value of the parameter
+        type: string
+      nodeName:
+        description: The name of the node that initiated the proposal
+        type: string
+      nodeId:
+        description: Node ID that initiated the proposal
+        type: string
+      yeas:
+        description: person who agrees
+        type: integer
+      nays:
+        description: Opponents
+        type: integer
+      abstentions:
+        description: abstainer
+        type: integer
+      accuVerifiers:
+        description: total people
+        type: integer
+      activeBlockTime:
+        description: Estimated time for effective block height  (activeBlock-curBlock)*period
+        type: integer
+      endVotingBlockTime:
+        description: time voting block high   (endVotingBlock-curBlock)*period
+        type: integer
+      supportRateThreshold:
+        description: pass condition rate
+        type: string
+      yesRateThreshold:
+        description: Passing rate
+        type: string
+      opposeRateThreshold:
+        description: Opposition rate
+        type: string
+      abstainRateThreshold:
+        description: abstention rate
+        type: string
+      pipNum:
+        description: pip num
+        type: integer
+      inBlock:
+        description: The height of the block
+        type: integer
+      canceledPipId:
+        description: Canceled proposal id
+        type: string
+      canceledTopic:
+        description: Canceled proposal name
+        type: string
+      participationRate:
+        description: Pass participation rate
+        type: string
+  ProposalDetailResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        $ref: '#/definitions/ProposalDetail2'
+  VoteListParam:
+    type: object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+      proposalHash:
+        description: The internal id of the proposal (Required)
+        type: string
+      option:
+        description: Vote selection 1-Support; 2-Oppose; 3-Abstain
+        type: integer
+  VoteDetail:
+    type: object
+    description: Voting details
+    properties:
+      nodeName:
+        description: The node name of the voting validator
+        type: string
+      nodeId:
+        description: Node ID of the voting validator
+        type: string
+      option:
+        description: Voting selection 1-support; 2-oppose; 3 abstain 11-support (invalid vote) 12-oppose (invalid vote) 13-abstain (invalid vote)
+        type: integer
+      txHash:
+        description: vote hash
+        type: string
+      timestamp:
+        description: time to vote
+        type: integer
+  VoteListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/VoteDetail'
+
+  #Validator related
+  StakingStatisticDetail:
+    type: object
+    properties:
+      stakingDelegationValue:
+        description: Total number of pledge commissions
+        type: string
+      stakingValue:
+        description: Total number of pledges
+        type: string
+      delegationValue:
+        description: Total number of orders
+        type: string
+      issueValue:
+        description: Circulation
+        type: string
+      blockReward:
+        description: Current block reward
+        type: string
+      stakingReward:
+        description: Current staking rewards
+        type: string
+      currentNumber:
+        description: current block height
+        type: integer
+      addIssueBegin:
+        description: The beginning of the current issuance cycle is fast high
+        type: integer
+      addIssueEnd:
+        description: The end block height of the current issuance cycle
+        type: integer
+      nextSetting:
+        description: Countdown to next billing cycle
+        type: integer
+      availableStaking:
+        description: available Staking
+        type: string
+  StakingStatisticResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        $ref: '#/definitions/StakingStatisticDetail'
+
+  AliveStakingListParam:
+    type: object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+      key:
+        description: Validator name
+        type: string
+      queryStatus:
+        description: Query status |
+          all-all<br/>
+          active-active<br/>
+          candidate-candidate<br/>
+        type: string
+  AliveStakingDetail:
+    type: object
+    description: Active node details
+    properties:
+      ranking:
+        description: ranking
+        type: integer
+      nodeId:
+        description: Node ID
+        type: string
+      nodeName:
+        description: Validator name
+        type: string
+      stakingIcon:
+        description: Validator icon
+        type: string
+      status:
+        description: Status 1-Candidate 2-Active 3-Block produced
+        type: integer
+      totalValue:
+        description: Total number of pledges = valid pledges + delegation
+        type: string
+      delegateValue:
+        description: The total amount of entrusted transactions = the total amount of entrusted transactions (amount during the hesitation period) + the total amount of entrusted transactions (amount during the lock-in period)
+        type: string
+      delegateQty:
+        description: Number of clients (number of addresses)
+        type: integer
+      slashLowQty:
+        description: Number of low block rate reports
+        type: integer
+      slashMultiQty:
+        description: Number of multi-sign reports
+        type: integer
+      blockQty:
+        description: Number of blocks generated
+        type: integer
+      expectedIncome:
+        description: Estimated annual revenue rate (calculated from the time when the validator joins)
+        type: string
+      isRecommend:
+        description: Is it officially recommended?
+        type: boolean
+      isInit:
+        description: Is it an initial node?
+        type: boolean
+      deleAnnualizedRate:
+        description: Estimated annual commission rate
+        type: string
+      delegatedRewardRatio:
+        description: Delegation reward ratio
+        type: string
+      genBlocksRate:
+        description: 24-hour block production rate
+        type: string
+      Version:
+        description: Version
+        type: string
+  AliveStakingListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total Count
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/AliveStakingDetail'
+
+  HistoryStakingListParam:
+    type: object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+      key:
+        description: Validator name
+        type: string
+  HistoryStakingDetail:
+    type: object
+    description: Historical node details
+    properties:
+      nodeId:
+        description: Node ID
+        type: string
+      nodeName:
+        description: Validator name
+        type: string
+      stakingIcon:
+        description: Validator icon
+        type: string
+      status:
+        description: Status 1-Candidate 2-Active 3-Block produced
+        type: integer
+      statDelegateReduction:
+        description: To be extracted entrust
+        type: string
+      slashLowQty:
+        description: Number of low block rate reports
+        type: integer
+      slashMultiQty:
+        description: Number of multi-sign reports
+        type: integer
+      blockQty:
+        description: Number of blocks generated
+        type: integer
+      leaveTime:
+        description: Exit time
+        type: integer
+      unlockBlockNum:
+        description: Estimated unlock block height
+        type: integer
+  HistoryStakingListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total Count
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/HistoryStakingDetail'
+
+  StakingDetailParam:
+    type: object
+    properties:
+      nodeId:
+        description: Node address(Required)
+        type: string
+  StakingDetail:
+    type: object
+    description: Historical node details
+    properties:
+      nodeName:
+        description: Validator name
+        type: string
+      stakingIcon:
+        description: Validator icon
+        type: string
+      status:
+        description: Status 1-Candidate 2-Active 3-Block produced
+        type: integer
+      totalValue:
+        description: Total number of pledges = valid pledges + delegation
+        type: string
+      delegateValue:
+        description: Total number of entrust
+        type: string
+      stakingValue:
+        description: Own pledge (valid number of pledges)
+        type: string
+      delegateQty:
+        description: Number of clients
+        type: integer
+      slashLowQty:
+        description: Number of low block rate reports
+        type: integer
+      slashMultiQty:
+        description: Number of multi-sign reports
+        type: integer
+      blockQty:
+        description: Number of blocks generated
+        type: integer
+      expectBlockQty:
+        description: Estimated number of blocks produced
+        type: integer
+      expectedIncome:
+        description: Estimated annual revenue rate (calculated from the time when the validator joins)
+        type: string
+      joinTime:
+        description: Join time
+        type: integer
+      verifierTime:
+        description: Enter the number of consensus verification rounds
+        type: integer
+      rewardValue:
+        description: accumulated earnings
+        type: string
+      nodeId:
+        description: Node ID
+        type: string
+      stakingAddr:
+        description: .
+        type: string
+      denefitAddr:
+        description: Revenue address
+        type: string
+      website:
+        description: Node’s third-party home page
+        type: string
+      details:
+        description: Node description
+        type: string
+      externalId:
+        description: external Id
+        type: string
+      externalUrl:
+        description: external Url
+        type: string
+      stakingBlockNum:
+        description: Latest staking transaction block high
+        type: integer
+      statDelegateReduction:
+        description: Number of entrust to be redeemed
+        type: string
+      isInit:
+        description: whether is an initial node
+        type: boolean
+      rewardPer:
+        description: Current commission reward ratio
+        type: string
+      nextRewardPer:
+        description: Commission reward ratio in the next settlement cycle
+        type: string
+      haveDeleReward:
+        description: Received commission reward
+        type: string
+      deleAnnualizedRate:
+        description: Estimated annual commission rate
+        type: string
+      totalDeleReward:
+        description: Cumulative commission rewards
+        type: string
+      deleRewardRed:
+        description: Commission rewards to be collected
+        type: string
+      genBlocksRate:
+        description: 24-hour block production rate
+        type: string
+      Version:
+        description: Version
+        type: string
+  StakingDetailResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/StakingDetail'
+
+  StakingOptRecordListParam:
+    type: object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+      nodeId:
+        description: Node ID(Required)
+        type: string
+  StakingOptRecordDetail:
+    type: object
+    description: Node operation log details
+    properties:
+      timestamp:
+        description: creation time
+        type: string
+      desc:
+        description: Operation description (code representation)|
+          1 create create <br/>
+          2 modify modify<br/>
+          3 quit exit<br/>
+          4 proposals proposals<br/>
+          5 vote vote<br/>
+          6 signatures double signature<br/>
+          7 lowBlockRate The block rate is low<br/>
+        type: string
+      txHash:
+        description: belongs transaction
+        type: string
+      blockNumber:
+        description: belongs block
+        type: integer
+      type:
+        description: Operation description (code representation)|
+          1 create create <br/>
+          2 modify modify<br/>
+          3 quit exit<br/>
+          4 proposals proposals<br/>
+          5 vote vote<br/>
+          6 signatures double signature<br/>
+          7 lowBlockRate The block rate is low<br/>
+        type: string
+      id:
+        description: proposal id
+        type: string
+      title:
+        description: Proposal title
+        type: string
+      option:
+        description: Proposal options
+        type: string
+      percent:
+        description: Penalty percentage
+        type: string
+      amount:
+        description: Penalty amount
+        type: string
+      isFire:
+        description: Whether to kick out the list 0-no, 1-yes
+        type: integer
+      expectedIncome:
+        description: Estimated annual revenue rate (calculated from the time when the validator joins)
+        type: string
+      version:
+        description: version
+        type: integer
+      proposalType:
+        description: proposal Type
+        type: string
+      beforeRate:
+        description: Original commission reward ratio
+        type: string
+      afterRate:
+        description: Delegation reward ratio after modification
+        type: string
+  StakingOptRecordListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total number of records
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/StakingOptRecordDetail'
+
+  DelegationListByStakingParam:
+    type: object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+      nodeId:
+        description: Node ID(Required)
+        type: string
+      stakingBlockNum:
+        description: Latest staking transaction block high
+        type: integer
+  DelegationListByStakingDetail:
+    type: object
+    description: Commission details
+    properties:
+      delegateAddr:
+        description: Principal address (delegation table)
+        type: string
+      delegateValue:
+        description: Delegation amount (delegation table delegate_hes+delegate_locked)
+        type: string
+      delegateTotalValue:
+        description: delegate Total Value（staking table delegate_hes+delegate_locked）
+        type: string
+      delegateLocked:
+        description: Locked delegation (TURN) is displayed normally if the associated validator status is normal, and zero if otherwise (delegation)
+        type: string
+      delegateReleased:
+        description: The current validator’s delegation to be redeemed
+        type: string
+  DelegationListByStakingListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total number of records
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/DelegationListByStakingDetail'
+
+  DelegationListByAddressParam:
+    type: object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+      address:
+        description: Delegation address (Required)
+        type: string
+  DelegationListByAddressDetail:
+    type: object
+    description: Commission details
+    properties:
+      nodeId:
+        description: Node ID
+        type: string
+      nodeName:
+        description: node Name
+        type: string
+      delegateValue:
+        description: Number of delegates (delegation table delegateHes+delegateLocked)
+        type: string
+      delegateHas:
+        description: Unlocked delegation (TURN) Displayed normally if the associated validator status is normal, zero if otherwise (delegation)
+        type: string
+      delegateLocked:
+        description: Locked delegation (TURN) is displayed normally if the associated validator status is normal, and zero if otherwise (delegation)
+        type: string
+      delegateUnlock:
+        description: Delegated (TURN) If the associated validator status is exiting or has exited, it is delegateHas+delegateLocked, and if otherwise, it is 0 (delegation)
+        type: string
+      delegateReleased:
+        description: Delegation to be redeemed (TURN) (delegation table)
+        type: string
+      delegateClaim:
+        description: Commission to be collected (TURN)
+        type: string
+  DelegationListByAddressListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total number of records
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/DelegationListByAddressDetail'
+
+  LockedStakingListParam:
+    type: object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+      key:
+        description: Validator name
+        type: string
+  LockedStakingDetail:
+    type: object
+    description: Lock node details
+    properties:
+      nodeId:
+        description: Node ID
+        type: string
+      nodeName:
+        description: node Name
+        type: string
+      stakingIcon:
+        description: Validator icon
+        type: string
+      status:
+        description: Status 6-Locked
+        type: integer
+      statDelegateReduction:
+        description: To be extracted entrust
+        type: string
+      slashLowQty:
+        description: Number of low block rate reports
+        type: integer
+      slashMultiQty:
+        description: Number of multi-sign reports
+        type: integer
+      leaveTime:
+        description: Exit time
+        type: integer
+      blockQty:
+        description: Number of blocks generated
+        type: integer
+      unlockBlockNum:
+        description: Estimated unlock block height
+        type: integer
+  LockedStakingListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total number of records
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/LockedStakingDetail'
+
+  #Transaction related
+  TransactionListParam:
+    type: object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+  TransactionDetail:
+    type: object
+    description: Transaction Details
+    properties:
+      txHash:
+        description: transaction hash
+        type: string
+      from:
+        description: Sender address (operation address)
+        type: string
+      to:
+        description: Receiver address
+        type: string
+      value:
+        description: Amount(unit:AAA)
+        type: string
+      actualTxCost:
+        description: Transaction fees (unit:AAA)
+        type: string
+      txType:
+        description: Transaction Type
+        type: string
+        enum:
+          - 0-Transfer
+          - 1-Contract release (contract creation)
+          - 2-Contract call (contract execution)
+          - 21-Contract destruction
+          - 4-Others
+          - 5-MPC transaction
+          - 6-erc20 contract creation
+          - 7-erc20 contract execution
+          - 8-erc721 contract creation
+          - 9-erc721 contract execution
+          - 1000-initiate pledge (create validator)
+          - 1001-Modify pledge information (modify validator)
+          - 1002-Pledge of increased holdings (free pledge of increased holdings)
+          - 1003-Revoke pledge (exit validator)
+          - 1004-Initiate delegation (commission)
+          - 1005-Reduction of holdings/cancellation of entrustment (redemption entrustment)
+          - 2000-Submit text proposal (Create proposal)
+          - 2001-Submit upgrade proposal (submit proposal)
+          - 2002-Submit parameter proposal (submit proposal-remove temporarily)
+          - 2003-Vote for proposals (proposal voting)
+          - 2004-Version Statement
+          - 2005-Cancellation of proposal
+          - 3000-Report multi-signature (report verifier)
+          - 4000-Create a lock-up plan (create a lock-up)
+          - 5000- claim the reward
+      serverTime:
+        description: server Time
+        type: integer
+      timestamp:
+        description: Block time
+        type: integer
+      blockNumber:
+        description: transaction belongs block height
+        type: integer
+      failReason:
+        description: fail Reason
+        type: string
+      receiveType:
+        description: This field represents the account type stored in the to field. When the front-end page clicks on the recipient's address, it will decide whether to jump to the account details or contract details based on this field.
+        type: string
+        enum:
+          - account-wallet address
+          - contract-Contract address
+      txReceiptStatus:
+        description: Transaction status 1-success 0-failure
+        type: string
+  TransactionListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      displayTotalCount:
+        description: Show total
+        type: integer
+      totalCount:
+        description: total number of records
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/TransactionDetail'
+
+  TransactionListByBlockParam:
+    type: object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+      blockNumber:
+        description: block Number(Required)
+        type: integer
+      txType:
+        description: Transaction Type (Optional), If not, it means all.
+        type: string
+        enum:
+         - transfer: transaction
+         - delegate: delegate related transactions
+         - staking: validator related transactions
+         - proposal: governance related transactions
+  TransactionListByAddressParam:
+    type: object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+      address:
+        description: address(Required)
+        type: string
+      txType:
+        description: Transaction Type (Optional), If not, it means all.
+        type: string
+        enum:
+         - transfer: transaction
+         - delegate: delegate related transactions
+         - staking: validator related transactions
+         - proposal: governance related transactions
+
+  TransactionDetailsParam:
+    type: object
+    properties:
+      txHash:
+        description: transaction hash(Required)
+        type: string
+  TransactionDetails:
+    type: object
+    description: Transaction Details
+    properties:
+      txHash:
+        description: transaction hash
+        type: string
+      from:
+        description: Sender address (operation address)
+        type: string
+      to:
+        description: Receiver address
+        type: string
+      timestamp:
+        description: transaction time
+        type: integer
+      serverTime:
+        description: server Time
+        type: integer
+      confirmNum:
+        description: Number of block confirmations
+        type: integer
+      blockNumber:
+        description: transaction belongs block height
+        type: integer
+      gasLimit:
+        description: gas Limit
+        type: integer
+      gasUsed:
+        description: gas Used
+        type: integer
+      gasPrice:
+        description: gas Price
+        type: string
+      value:
+        description: Amount(unit:AAA)
+        type: string
+      actualTxCost:
+        description: transaction fees (unit:AAA)
+        type: string
+      txType:
+        description: Transaction Type
+        type: string
+        enum:
+          - 0-Transfer
+          - 1-Contract release (contract creation)
+          - 2-Contract call (contract execution)
+          - 21-Contract destruction
+          - 4-Others
+          - 5-MPC transaction
+          - 6-erc20 contract creation
+          - 7-erc20 contract execution
+          - 8-erc721 contract creation
+          - 9-erc721 contract execution
+          - 1000-initiate pledge (create validator)
+          - 1001-Modify pledge information (modify validator)
+          - 1002-Pledge of increased holdings (free pledge of increased holdings)
+          - 1003-Revoke pledge (exit validator)
+          - 1004-Initiate delegation (commission)
+          - 1005-Reduction of holdings/cancellation of entrustment (redemption entrustment)
+          - 2000-Submit text proposal (Create proposal)
+          - 2001-Submit upgrade proposal (submit proposal)
+          - 2002-Submit parameter proposal (submit proposal-remove temporarily)
+          - 2003-Vote for proposals (proposal voting)
+          - 2004-Version Statement
+          - 2005-Cancellation of proposal
+          - 3000-Report multi-signature (report verifier)
+          - 4000-Create a lock-up plan (create a lock-up)
+          - 5000- claim the reward
+      input:
+        description: Additional input data
+        type: string
+      txInfo:
+        description: Attach the parsed structure of the input data
+        type: string
+      failReason:
+        description: fail Reason
+        type: string
+      first:
+        description: whether is the first record
+        type: boolean
+      preHash:
+        description: pre transaction HASH
+        type: string
+      last:
+        description: whether is the last record
+        type: boolean
+      nextHash:
+        description: next transaction HASH
+        type: string
+      toType:
+        description: This field represents the account type stored in the to field. When the front-end page clicks on the recipient's address, it will decide whether to jump to the account details or contract details based on this field.
+        type: string
+        enum:
+          - 1-Account
+          - 2-Built-in contract
+          - 3-EVM Contract
+          - 4-WASM Contract
+          - 5-EVM-Token
+          - 6-WASM-Token
+      contractType:
+        description: Contract type
+        type: integer
+        enum:
+          - 3-EVM Contract
+          - 4-WASM Contract
+          - 5-EVM-Token
+          - 6-WASM-Token
+      contractName:
+        description: Contract name
+        type: string
+      method:
+        description: Contract call function
+        type: string
+      # Optional message starts
+      RPAccount:
+        description: The address of the lock-up plan
+        type: string
+      RPNum:
+        description: Locked quantity
+        type: string
+      RPPlan:
+        description: List of lock-up plans
+        type: array
+        items:
+          $ref: '#/definitions/Rpplan'
+      evidences:
+        description: Evidence of reporting
+        type: array
+        items:
+          $ref: '#/definitions/Evidence'
+      nodeId:
+        description: Node ID
+        type: string
+      nodeName:
+        description: node Name
+        type: string
+      benefitAddr:
+        description: Income account used to receive block rewards and staking rewards
+        type: string
+      externalId:
+        description: External ID (with length limit, used to pull the ID of the node description to a third party)
+        type: string
+      website:
+        description: Node’s third-party home page(There is a length limit, indicating the homepage of the node)
+        type: string
+      details:
+        description: Node description(There is a length limit, indicating the homepage of the node)
+        type: string
+      programVersion:
+        description: The real version of the program, obtained by governance rpc
+        type: string
+      applyAmount:
+        description: Amount requested for redemption
+        type: string
+      redeemLocked:
+        description: Amount locked in redemption  staing staking_reduction
+        type: string
+      redeemStatus:
+        description: Redemption status, 1-Returning in progress 2-Returning successfully
+        type: integer
+      redeemUnLockedBlock:
+        description: Blocks expected to be redeemed  staing (staking_reduction_epoch+node pledge reduction locking period (whether including the current one)*number of blocks in the settlement period (C)
+        type: integer
+      proposalUrl:
+        description: The github address of the proposal  https://github.com/ethereum/EIPs/blob/master/EIPS/eip-100.md  eip-100为proposal id
+        type: string
+      proposalHash:
+        description: proposal id
+        type: string
+      proposalOption:
+        description: Voting 1-Text proposal 2-Upgrade proposal 3-Parameter proposal
+        type: integer
+      proposalNewVersion:
+        description: Upgrade proposal version
+        type: string
+      declareVersion:
+        description: declared version
+        type: string
+      txReceiptStatus:
+        description: Transaction status 1-Success 0-Failure
+        type: integer
+      evidence:
+        description: evidence
+        type: string
+      reportType:
+        description: report Type:1：prepareBlock，2：prepareVote，3：viewChange
+        type: integer
+      reportRewards:
+        description: report Rewards
+        type: string
+      reportStatus:
+        description: reportStatus 2-Success 1-Failure
+        type: integer
+      pipNum:
+        description: Proposal pip number
+        type: string
+      proposalStatus:
+        description: Proposal status 1-Voting 2-Passed 3-Failed 4-Pre-upgrade 5-Upgrade completed
+        type: integer
+      proposalTitle:
+        description: Proposal title
+        type: string
+      txAmount:
+        description: The transaction amount includes the pledged quantity and the withdrawal quantity
+        type: string
+      voteStatus:
+        description: Voting options 1-Support 2-Oppose 3-Abstain
+        type: integer
+      delegationRatio:
+        description: Commission ratio
+        type: string
+      erc20Params:
+        description: ERC20 parameters
+        type: array
+        items:
+          $ref: '#/definitions/Erc20Params'
+      erc721Params:
+        description: ERC721 parameters
+        type: array
+        items:
+          $ref: '#/definitions/Erc721Params'
+      rewards:
+        description: rewards
+        type: array
+        items:
+          $ref: '#/definitions/Reward'
+      # End of optional information
+  RPPlan:
+    type: object
+    properties:
+      epoch:
+        description: Lock-up period
+        type: integer
+      amount:
+        description: Locked amount
+        type: string
+      blockNumber:
+        description: The lock-up period corresponds to the fast high end period * epoch
+        type: integer
+  Evidence:
+    type: object
+    properties:
+      verify:
+        description: Node ID
+        type: string
+      nodeName:
+        description: Reported node Name
+        type: string
+  Erc20Params:
+    type: object
+    properties:
+      innerTxFrom:
+        description: Insider transactions from
+        type: string
+      innerTxTo:
+        description: Insider transactions to
+        type: string
+      innerValue:
+        description: Insider transactions amount
+        type: string
+      innerContractAddr:
+        description: Insider transactions contract address
+        type: string
+      innerContractName:
+        description: Insider transactions contract name
+        type: string
+      innerSymbol:
+        description: Insider transactions symbol
+        type: string
+  Erc721Params:
+    type: object
+    properties:
+      innerTxFrom:
+        description: Insider transactions from
+        type: string
+      innerTxTo:
+        description: Insider transactions to
+        type: string
+      innerValue:
+        description: Insider transactions amount
+        type: string
+      innerContractAddr:
+        description: Insider transactions contract address
+        type: string
+      innerContractName:
+        description: Insider transactions contract name
+        type: string
+      innerSymbol:
+        description: Insider transactions symbol
+        type: string
+      innerImage:
+        description: Insider transactions image
+        type: string
+  Reward:
+    type: object
+    properties:
+      verify:
+        description: Node ID
+        type: string
+      nodeName:
+        description: node Name
+        type: string
+      reward:
+        description: Rewards received
+        type: string
+  TransactionDetailsResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      displayTotalCount:
+        description: Show total
+        type: integer
+      totalCount:
+        description: total number of records
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/TransactionDetails'
+
+  QueryClaimByAddressParam:
+    type: object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+      address:
+        description: address(Required)
+        type: string
+  QueryClaimByAddressDetail:
+    type: object
+    description: Get reward details
+    properties:
+      txHash:
+        description: transaction hash
+        type: string
+      allRewards:
+        description: total reward
+        type: string
+      timestamp:
+        description: transaction time
+        type: integer
+      rewardsDetails:
+        description: Receive award
+        type: array
+        items:
+          $ref: '#/definitions/RewardDetail'
+  RewardDetail:
+    type: object
+    properties:
+      verify:
+        description: Node ID
+        type: string
+      nodeName:
+        description: node Name
+        type: string
+      reward:
+        description: Rewards received
+        type: string
+  QueryClaimByAddressListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/QueryClaimByAddressDetail'
+
+  QueryClaimByStakingParam:
+    type: object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+      nodeId:
+        description: Node ID(Required)
+        type: string
+  QueryClaimByStakingDetail:
+    type: object
+    properties:
+      verify:
+        description: Node ID
+        type: string
+      addr:
+        description: entrust address
+        type: string
+      time:
+        description: received time
+        type: integer
+      reward:
+        description: Receive award
+        type: string
+  QueryClaimByStakingListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total number of records
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/QueryClaimByStakingDetail'
+  #inner address
+  PageReq:
+    type: object
+    description: Internal address list query parameter object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+  InternalAddressRespResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        $ref: '#/definitions/internalAddressBaseResp'
+  internalAddressBaseResp:
+    type: object
+    description: Internal address list response parameter object
+    properties:
+      totalBalance:
+        description: Total balance of foundation account
+        type: number
+      totalRestrictingBalance:
+        description: Total locked balance of foundation account
+        type: number
+      InternalAddressBaseResp:
+        description: Foundation account list
+        type: array
+        items:
+          $ref: '#/definitions/InternalAddress'
+  InternalAddress:
+    type: object
+    description: Foundation account
+    properties:
+      address:
+        description: Foundation account address
+        type: string
+      type:
+        description: Address type 0-Foundation account 1-Lock Contract address 2-Pledge contract 3-Incentive pool contract 6-Delegation reward pool contract
+        type: integer
+      balance:
+        description: balance
+        type: number
+      restrictingBalance:
+        description: Locked balance
+        type: number
+      createTime:
+        description: creation time
+        type: string
+      updateTime:
+        description: update time
+        type: string
+  MicroNodeStatisticResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        $ref: '#/definitions/MicroNodeStatisticDetail'
+  MicroNodeStatisticDetail:
+    type: object
+    properties:
+      stakingValue:
+        description: Total number of pledges
+        type: string
+  AliveMicroNodeListReqParam:
+    type: object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+      key:
+        description: Validator name
+        type: string
+      queryStatus:
+        description: Query status |
+          all- all<br/>
+          exited- exited<br/>
+          candidate- candidate<br/>
+        type: string
+      bubbleId:
+        description: bubbleId
+        type: long
+  AliveMicroNodeListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total Count
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/AliveMicroNodeDetail'
+  AliveMicroNodeDetail:
+    type: object
+    description: Active node details
+    properties:
+      ranking:
+        description: ranking
+        type: integer
+      nodeId:
+        description: Node ID
+        type: string
+      nodeName:
+        description: micro node Name
+        type: string
+      status:
+        description: Status 1-Candidate 2-Exited
+        type: integer
+      bubbleId:
+        description: sub chain id
+        type: long
+      totalValue:
+        description: Total number of pledges
+        type: string
+      Version:
+        description: Version
+        type: string
+  MicroNodeDetailsParam:
+    type: object
+    properties:
+      nodeId:
+        description: Node address(Required)
+        type: string
+  MicroNodeDetailResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/MicroNodeDetail'
+  MicroNodeDetail:
+    type: object
+    description: Micro Node Detail
+    properties:
+      nodeName:
+        description: micro node Name
+        type: string
+      status:
+        description: Status 1-Candidate 2-Exited
+        type: integer
+      totalValue:
+        description: Total number of pledges
+        type: string
+      nodeId:
+        description: Node ID
+        type: string
+      operationAddr:
+        description: operation Address
+        type: string
+      beneficiary:
+        description: beneficiary
+        type: string
+      Version:
+        description: Version
+        type: string
+  MicroNodeOptRecordListParam:
+    type: object
+    properties:
+      pageNo:
+        description: Number of pages (required)
+        type: integer
+      pageSize:
+        description: Page size (required)
+        type: integer
+      nodeId:
+        description: Node ID(Required)
+        type: string
+  MicroNodeOptRecordListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total number of records
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/MicroNodeOptRecordDetail'
+  MicroNodeOptRecordDetail:
+    type: object
+    description: Node operation log details
+    properties:
+      timestamp:
+        description: creation time
+        type: string
+      txHash:
+        description: belongs transatcion hash
+        type: string
+      blockNumber:
+        description: belongs block number
+        type: integer
+      type:
+        description: Operation description (code representation)|
+          1 create create <br/>
+          2 edit modify<br/>
+          3 quit exit<br/>
+        type: string
+  #game
+  QueryAddrGameListReq:
+    type: object
+    properties:
+      address:
+        description: address(Required)
+        type: string
+      roundId:
+        description: round id
+        type: long
+  AddrGameListResult:
+    type: object
+    properties:
+      errMsg:
+        description: Error message
+        type: string
+      code:
+        description: Success (0), failure will have related failure code
+        type: integer
+      totalCount:
+        description: total number of records
+        type: integer
+      totalPages:
+        description: total pages
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/AddrGameDetailResp'
+  AddrGameDetailResp:
+    type: object
+    description: Node operation log details
+    properties:
+      address:
+        description: address
+        type: string
+      roundId:
+        description: round id
+        type: long
+      gameContractAddress:
+        description: game Contract address
+        type: string
+      bubbleId:
+        description: sub chain id
+        type: long
+      tokenAddress:
+        description: token Contract address
+        type: string
+      tokenSymbol:
+        description: token Symbol
+        type: string
+      tokenDecimal:
+        description: token Decimal
+        type: integer
+  #bubble
+  BubbleListReq:
+    type: object
+    properties:
+      pageNo:
+        description: number of pages (required)
+        type: integer
+      pageSize:
+        description: page size (required)
+        type: integer
+      queryStatus:
+        description: Query status
+          all-all<br/>
+          active-active<br/>
+          releasing-to be released<br/>
+          released-released<br/>
+        type: string
+      bubbleId:
+        description: bubbleId
+        type: long
+  BubbleListResp:
+    type: object
+    description: bubble list response object
+    properties:
+      bubbleId:
+        description: bubbleId
+        type: long
+      status:
+        description: Status 0-all;1-active;2-releasing;3-released
+        type: integer
+      createTime:
+        description: creation time
+        type: long
+  #sub chain
+  SubChainRecordListReq:
+    type: object
+    description: Sub-chain transaction record list request
+    properties:
+      address:
+        description: address
+        type: string
+  SubChainTxRecordListResp:
+    type: object
+    description: Sub-chain transaction record list response
+    properties:
+      txHash:
+        description: transaction hash
+        type: string
+      from:
+        description: Sender address (operation address)
+        type: string
+      to:
+        description: Receiver address
+        type: string
+      seq:
+        description: seq
+        type: long
+      value:
+        description: amount
+        type: string
+      actualTxCost:
+        description: transaction fees
+        type: string
+      txType:
+        description: Transaction Type 2-contract call
+        type: string
+      serverTime:
+        description: server Time
+        type: long
+      timestamp:
+        description: Block time
+        type: long
+      blockNumber:
+        description: transaction belongs block height
+        type: long
+      failReason:
+        description: fail Reason
+        type: string
+      bubbleId:
+        description: sub chain id
+        type: long
+      txReceiptStatus:
+        description: transaction status
+        type: integer
+  SubChainTransactionDetailsReq:
+    type: object
+    description: Sub-chain transaction record details request
+    properties:
+      txHash:
+        description: transaction hash
+        type: string
+      bubbleId:
+        description: sub chain id
+        type: long
+  SubChainTxDetailsResp:
+    type: object
+    description: Sub-chain transaction record details response
+    properties:
+      txHash:
+        description: transaction hash
+        type: string
+      from:
+        description: Sender address (operation address)
+        type: string
+      gasLimit:
+        description: gas Limit
+        type: string
+      gasUsed:
+        description: gas Used
+        type: string
+      gasPrice:
+        description: gas Price
+        type: string
+      input:
+        description: Additional input data
+        type: string
+      txInfo:
+        description: Additional input data parsed structure
+        type: string
+      to:
+        description: Receiver address
+        type: string
+      seq:
+        description: seq
+        type: long
+      value:
+        description: admount
+        type: string
+      actualTxCost:
+        description: transaction fees
+        type: string
+      txType:
+        description: Transaction Type 2-contract call
+        type: string
+      serverTime:
+        description: server Time
+        type: long
+      timestamp:
+        description: Block time
+        type: long
+      blockNumber:
+        description: Transaction belongs block height
+        type: long
+      failReason:
+        description: fail Reason
+        type: string
+      bubbleId:
+        description: sub chain id
+        type: long
+      txReceiptStatus:
+        description: Transaction status
+        type: integer
+      method:
+        description: transaction call function
+        type: string
+      contractName:
+        description: Contract name
+        type: string
+      subChainTopics:
+        type: SubChainTxTopic
+        items:
+          $ref: '#/definitions/SubChainTxTopic'
+  SubChainTxTopic:
+    type: object
+    description: sub chain topic
+    properties:
+      address:
+        description: Contract address
+        type: string
+      topic:
+        description: topic
+        type: string
+      event:
+        description: event
+        type: string
+      data:
+        description: data
+        type: string

@@ -1,0 +1,170 @@
+
+#Spring application configuration
+spring:
+  application:
+    name: scan-api
+  session:
+    timeout: 1800  #in seconds
+  #International configuration
+  messages.basename: messages
+  #Data source configuration
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.31.114:12012/scan_${profile}?useUnicode=true&characterEncoding=utf-8&useSSL=false&useTimezone=true&serverTimezone=GMT%2B8&allowMultiQueries=true
+    username: qiliu
+    password: qiliu123456
+    #The following are supplementary settings for the connection pool, which apply to all data sources above.
+    #Initialize size, minimum, maximum
+    initialSize: 5
+    minIdle: 10
+    maxActive: 100
+    # Configure the timeout to wait for a connection
+    maxWait: 60000
+    # Configure the interval between detection and detection of idle connections that need to be closed. The unit is milliseconds.
+    timeBetweenEvictionRunsMillis: 60000
+    # Configure the minimum survival time of a connection in the pool, in milliseconds
+    minEvictableIdleTimeMillis: 30000
+    validationQuery: select 'x'
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    # Turn on PSCache and specify the size of PSCache on each connection
+    poolPreparedStatements: true
+    maxPoolPreparedStatementPerConnectionSize: 100
+  #Redis key configuration
+  redis:
+    password: "ffca@sn!u934"
+    cluster:
+      max-redirects: 3
+      nodes: 192.168.31.115:6381,192.168.31.115:6382,192.168.31.115:6383,192.168.31.115:6384,192.168.31.115:6385,192.168.31.115:6386
+    key:
+      #How many pieces of data can be stored at most?
+      max-item: 500000
+      #Block list
+      blocks: ${turn.redis-namespace}:blocks
+      #Transaction list
+      transactions: ${turn.redis-namespace}:transactions
+      #Statistics
+      networkStat: ${turn.redis-namespace}:networkStat
+      #Internal transfer transaction
+      transferTx: ${turn.redis-namespace}:transferTx
+      #erc20trade
+      erc20Tx: ${turn.redis-namespace}:erc20Tx
+      #erc721 Transaction
+      erc721Tx: ${turn.redis-namespace}:erc721Tx
+      #erc1155 Transaction
+      erc1155Tx: ${turn.redis-namespace}:erc1155Tx
+      #Joined games list
+      addrGames: ${turn.redis-namespace}:addrGames
+      #bubble information
+      bubbleInfo: ${turn.redis-namespace}:bubbleInfo
+  #ES index configuration
+  elasticsearch:
+    high-level-client:
+      hosts: 192.168.31.115:19200,192.168.31.115:29200,192.168.31.115:39200
+      port: 19200
+      schema: http
+      username:
+      password:
+    index:
+      blockIndexName: ${turn.es-namespace}_block
+      transactionIndexName: ${turn.es-namespace}_transaction
+      delegationIndexName: ${turn.es-namespace}_delegation
+      nodeOptIndexName: ${turn.es-namespace}_nodeopt
+      delegationRewardIndexName: ${turn.es-namespace}_delegation_reward
+      transferTxIndexName: ${turn.es-namespace}_transfer_tx
+      erc20TxIndexName: ${turn.es-namespace}_erc20_tx
+      erc721TxIndexName: ${turn.es-namespace}_erc721_tx
+      erc1155TxIndexName: ${turn.es-namespace}_erc1155_tx
+      microNodeOptIndexName: ${turn.es-namespace}_micro_node_opt
+# MyBatis configuration (note: must correspond to the path of the mapper mapping xml file)
+mybatis:
+  mapper-locations: classpath*:mapper/*.xml, classpath*:custommapper/*.xml
+  # Entity category name configuration (note: the path to the corresponding entity class)
+  type-aliases-package: com.turn.browser.dao.entity
+profile: turn
+#Performance configuration
+server:
+  port: 40010
+  tomcat:
+    max-connections: 20000
+    threads:
+      max: 2000
+      min-spare: 800
+  servlet:
+    context-path: /browser-server
+#Log configuration
+logging:
+  #Log level
+  level:
+    org.springframework: info
+    com.turn.browser: info
+    com.turn.browser.service: info
+    com.turn.browser.task: info
+    com.turn.browser.client: info
+    com.turn.browser.dao: info
+#Turn related configurations
+turn:
+  #Address HRP prefix
+  addressPrefix: AA
+  # Amount display unit
+  valueUnit: AA
+  # Number of parallel decoding threads for transaction input parameters
+  txLogDecodeThreadNum: 200
+  # Web3j access address
+  web3j:
+    #HTTPorWS
+    protocol: WS
+    addresses: 10.32.165.85:6790
+  # How many consecutive periods can the statistical annualized rate of pledge nodes take at most?
+  maxSettlePeriodCount4AnnualizedRateStat: 4
+  #TurnInitial total issuance (Turn)
+  initIssueAmount: 10000000000
+  #Fixed issuance ratio every year
+  addIssueRate: 0.025
+  #The proportion of additional issuance allocated to the incentive pool each year
+  incentiveRateFromIssue: 0.8
+  #How many blocks are rolled back in each consensus round is the time to elect the next round of validators
+  electionBackwardBlockCount: 20
+  #The amount of money the Calculator Foundation will fill into the incentive pool within 10 years: <Year-subsidy amount (Turn)>
+  foundationSubsidies: {
+    '1':62215742.00000000,
+    '2':55965742.00000000,
+    '3':49559492.00000000,
+    '4':42993086.00000000,
+    '5':36262520.00000000,
+    '6':29363689.00000000,
+    '7':22292388.00000000,
+    '8':15044304.00000000,
+    '9':7615018.00000000
+  }
+# Default pledge amount of initial built-in node (Turn)
+  defaultStakingLockedAmount: 150000
+  #Block maximum gas limit
+  maxBlockGasLimit: 201600000
+  #Proposal url parameter template
+  proposalUrlTemplate: https://github.com/Turnnetwork/PIPs/blob/master/PIPs/PIP-%s.md
+  #keysBaseURL
+  keyBase: https://keybase.io/
+  #keyBase api
+  keyBaseApi: _/api/1.0/user/lookup.json?key_suffix=
+  #chainid
+  chainId: 100
+  #Redis namespace
+  redis-namespace: browser:${profile}
+  #Esindex namespace
+  es-namespace: browser_${profile}
+  #0 Loop access time for block waiting (seconds)
+  zeroBlockNumber:
+    wait-time: 60
+recaptchaUrl: https://recaptcha.net/recaptcha/api/siteverify?secret=6Lf8KLcUAAAAAPyHZfa7oeWjdMSyvgDHUUeYf01Z&response=%s
+limit:
+  num: 10
+output:
+  file:
+    url: /var/tmp
+apollo:
+  bootstrap:
+    # Whether to enable Apollo
+    enabled: false

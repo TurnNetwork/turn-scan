@@ -1,0 +1,24 @@
+#Log configuration
+logging:
+  file:
+    name: ./logs/scan-api.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} | %-5level | %thread | trace-id[%X{trace-id}] | %logger{50}[%L] | %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} | %-5level | %thread | trace-id[%X{trace-id}] | %logger{50}[%L] | %msg%n"
+  logback:
+    rollingpolicy:
+      # The upper limit of log file size. Once the upper limit is reached, it will be automatically compressed.
+      max-file-size: 200MB
+      # The file name of the log archive. After the log file reaches a certain size, it will be automatically compressed and archived.
+      file-name-pattern: ./logs/scan-api-%d{yyyy-MM-dd}-%i.log.gz
+      # Number of days to keep log files
+      max-history: 90
+      # Whether to perform archive management when the application starts
+      clean-history-on-start: true
+spring:
+  profiles:
+    active: turn
+# Password encryption configuration
+jasypt:
+  encryptor:
+    password: ${JASYPT_ENCRYPTOR_PASSWORD:}

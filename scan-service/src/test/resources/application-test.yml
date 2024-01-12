@@ -1,0 +1,151 @@
+# ***************************Development configuration************************ ********** #
+# Currently activated configuration name (please do not modify it)
+profile: dev
+# Password encryption configuration
+jasypt:
+  encryptor:
+    password: ${JASYPT_ENCRYPTOR_PASSWORD:}
+#Performance configuration
+server:
+  port: 9061
+  tomcat:
+    max-connections: 20000
+    threads:
+      max: 2000
+      min-spare: 800
+#Spring framework internal configuration
+spring:
+  #Data source configuration
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.9.191:3306/alaya_browser_${profile}?useSSL=false&useTimezone=true&serverTimezone=GMT%2B8&allowMultiQueries=true
+    # Monitor SQL using p6spy
+    # driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+    # url: jdbc:p6spy:mysql://192.168.9.191:3306/alaya_browser_0.15.2.0_hyp?useSSL=false&useTimezone=true&serverTimezone=GMT%2B8&allowMultiQueries=true
+    username: turn
+    password: turn
+    #The following are supplementary settings for the connection pool, which apply to all data sources above.
+    #Initialize size, minimum, maximum
+    initialSize: 5
+    minIdle: 10
+    maxActive: 100
+    # Configure the timeout to wait for a connection
+    maxWait: 60000
+    # Configure the interval between detection and detection of idle connections that need to be closed. The unit is milliseconds.
+    timeBetweenEvictionRunsMillis: 60000
+    # Configure the minimum survival time of a connection in the pool, in milliseconds
+    minEvictableIdleTimeMillis: 30000
+    validationQuery: select 'x'
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    # Turn on PSCache and specify the size of PSCache on each connection
+    poolPreparedStatements: true
+    maxPoolPreparedStatementPerConnectionSize: 100
+  #Redis config
+  redis:
+    password:
+    database: 0
+    cluster:
+      max-redirects: 3
+      nodes: 192.168.9.191:7001,192.168.9.191:7002,192.168.9.191:7003,192.168.9.191:7004,192.168.9.191:7005,192.168.9.191:7006
+  #ES config
+  elasticsearch:
+    high-level-client:
+      hosts: 192.168.120.103,192.168.120.104,192.168.120.105
+      port: 9200
+      schema: http
+      username: elastic
+      password: changeme
+#Log configuration
+logging:
+  #Log level
+  level:
+    org.springframework: info
+    com.turn.browser: info
+    com.turn.browser.service: info
+    com.turn.browser.task: info
+    com.turn.browser.client: info
+    com.turn.browser.dao: info
+  file:
+    name: ./logs/${spring.application.name}-${profile}.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} | %-5level | %thread | trace-id[%X{trace-id}] | %logger{50} | %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} | %-5level | %thread | trace-id[%X{trace-id}] | %logger{50} | %msg%n"
+  logback:
+    rollingpolicy:
+      # The upper limit of log file size. Once the upper limit is reached, it will be automatically compressed.
+      max-file-size: 200MB
+      # The file name of the log archive. After the log file reaches a certain size, it will be automatically compressed and archived.
+      file-name-pattern: ./logs/${spring.application.name}-${profile}-%d{yyyy-MM-dd}-%i.gz
+      # Number of days to keep log files
+      max-history: 1
+      # Whether to perform archive management when the application starts
+      clean-history-on-start: true
+#Initialize chain related configurations
+turn:
+  #Address HRP prefix
+  addressPrefix: atp
+  # Amount display unit
+  valueUnit: ATP
+  # Number of parallel decoding threads for transaction input parameters
+  txLogDecodeThreadNum: 200
+  # Web3j access address
+  web3j:
+    #HTTPorWS
+    protocol: WS
+    addresses: 192.168.112.141:7789,192.168.112.141:7790
+  # How many consecutive periods can the statistical annualized rate of pledge nodes take at most?
+  maxSettlePeriodCount4AnnualizedRateStat: 4
+  #TurnInitial total issuance (ATP)
+  initIssueAmount: 100000000
+  #Fixed issuance ratio every year
+  addIssueRate: 0.05
+  #The proportion of additional issuance allocated to the incentive pool each year
+  incentiveRateFromIssue: 0.4
+  #How many blocks are rolled back in each consensus round is the time to elect the next round of validators
+  electionBackwardBlockCount: 20
+  #The amount of money the Calculator Foundation will fill into the incentive pool within 10 years: <Year-subsidy amount (ATP)>
+  foundationSubsidies: {
+    '1':0,
+    '2':0,
+    '3':0,
+    '4':0,
+    '5':0,
+    '6':0,
+    '7':0,
+    '8':0,
+    '9':0
+  }
+  # Initial built-in node default pledge amount (ATP)
+  defaultStakingLockedAmount: 10500
+  #Block maximum gas limit
+  maxBlockGasLimit: 201600000
+  #Proposal url parameter template
+  proposalUrlTemplate: https://github.com/Turnnetwork/PIPs/tree/master/Alaya/PIP-%s.md
+  #keysBaseURL
+  keyBase: https://keybase.io/
+  #keyBase api
+  keyBaseApi: _/api/1.0/user/lookup.json?key_suffix=
+  #chainid
+  chainId: 201018
+  #Redis namespace
+  redis-namespace: browser:${profile}
+  #Esindex namespace
+  es-namespace: browser_${profile}
+  #0 Loop access time for block waiting (seconds)
+  zeroBlockNumber:
+    wait-time: 60
+recaptchaUrl: https://recaptcha.net/recaptcha/api/siteverify?secret=6Lf8KLcUAAAAAPyHZfa7oeWjdMSyvgDHUUeYf01Z&response=%s
+limit:
+  num: 10
+output:
+  file:
+    url: ./
+
+brokenHost: 192.168.16.173
+brokenPort: 61613
+system.username: admin
+system.password: admin
+client.username: guest
+client.password: guest

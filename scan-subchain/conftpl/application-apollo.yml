@@ -1,0 +1,27 @@
+#Specify environment
+env: DEV
+app:
+  # Application ID
+  id: turn-scan-subchain
+apollo:
+  access-key:
+    # Configure access key
+    secret: f982e1a8f14444c7a484dc16bcad7741
+  bootstrap:
+    # Whether to enable Apollo
+    enabled: true
+    eagerLoad:
+      # When enabled, Apollo's configuration will be loaded before logback's configuration.
+      enable: true
+      # Specify which Namespace configuration to use, default application
+    namespaces: application
+  # Apollo configuration center address, multiple addresses separated by commas
+  # It is recommended to use VM parameters to specify meta and env -Dapollo.configService=http://192.168.9.149:8080 -Denv=DEV
+  # The priority of apollo.configService is higher than apollo.meta, and configService will override meta.
+  meta: http://10.0.0.34:8080
+  # Configure local configuration cache directory
+  cacheDir: ./apolloCache/data/
+  property:
+    order:
+      #Set whether the configuration items in memory remain consistent with the order on the page
+      enable: true

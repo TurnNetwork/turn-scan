@@ -1,0 +1,31 @@
+#Create the network usafe-net first
+#docker network create -d bridge --subnet=172.16.0.0/24 usafe-net
+#1. Build the image
+#tag=1.1.0 env=dev docker-compose build
+#2. Run the container
+#tag=1.1.0 env=dev docker-compose up -d
+#or ${tag} written directly to death
+#1. Build the image
+#docker-compose build
+#2. Run the container
+#docker-compose up -d
+#config is pulled from the container through the cp command.
+#docker cp usafe-consumer:/opt/config/application-dev.yml ${appdir}/config/application-dev.yml
+version: '3.7'
+services:
+  scan-agent:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: scan-agent
+    image: scan-agent:${tag:-0.1.0}
+    restart: always
+    privileged: true
+    volumes:
+      - /home/dockerImages/bubble-scan/scan-agent/config:/opt/config
+      - /home/dockerImages/bubble-scan/scan-agent/logs:/opt/logs
+    ports:
+      - 9999:9999
+    environment:
+      TZ: Asia/Shanghai
+      'spring.profiles.active': ${env:-turn}

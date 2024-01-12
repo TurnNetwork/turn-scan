@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.turn.browser.dao.mapper.RoundMapper">
+  <resultMap id="BaseResultMap" type="com.turn.browser.dao.entity.Round">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="game_id" jdbcType="BIGINT" property="gameId" />
+    <result column="round_id" jdbcType="BIGINT" property="roundId" />
+    <result column="bubble_id" jdbcType="BIGINT" property="bubbleId" />
+    <result column="creator" jdbcType="VARCHAR" property="creator" />
+    <result column="token_address" jdbcType="VARCHAR" property="tokenAddress" />
+    <result column="token_symbol" jdbcType="VARCHAR" property="tokenSymbol" />
+    <result column="token_decimal" jdbcType="INTEGER" property="tokenDecimal" />
+    <result column="token_rpc" jdbcType="VARCHAR" property="tokenRpc" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, game_id, round_id, bubble_id, creator, token_address, token_symbol, token_decimal, 
+    token_rpc, `status`, create_time, update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.turn.browser.dao.entity.RoundExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from round
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from round
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from round
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.turn.browser.dao.entity.RoundExample">
+    delete from round
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.turn.browser.dao.entity.Round">
+    insert into round (id, game_id, round_id, 
+      bubble_id, creator, token_address, 
+      token_symbol, token_decimal, token_rpc, 
+      `status`, create_time, update_time
+      )
+    values (#{id,jdbcType=BIGINT}, #{gameId,jdbcType=BIGINT}, #{roundId,jdbcType=BIGINT}, 
+      #{bubbleId,jdbcType=BIGINT}, #{creator,jdbcType=VARCHAR}, #{tokenAddress,jdbcType=VARCHAR}, 
+      #{tokenSymbol,jdbcType=VARCHAR}, #{tokenDecimal,jdbcType=INTEGER}, #{tokenRpc,jdbcType=VARCHAR}, 
+      #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.turn.browser.dao.entity.Round">
+    insert into round
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="gameId != null">
+        game_id,
+      </if>
+      <if test="roundId != null">
+        round_id,
+      </if>
+      <if test="bubbleId != null">
+        bubble_id,
+      </if>
+      <if test="creator != null">
+        creator,
+      </if>
+      <if test="tokenAddress != null">
+        token_address,
+      </if>
+      <if test="tokenSymbol != null">
+        token_symbol,
+      </if>
+      <if test="tokenDecimal != null">
+        token_decimal,
+      </if>
+      <if test="tokenRpc != null">
+        token_rpc,
+      </if>
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="gameId != null">
+        #{gameId,jdbcType=BIGINT},
+      </if>
+      <if test="roundId != null">
+        #{roundId,jdbcType=BIGINT},
+      </if>
+      <if test="bubbleId != null">
+        #{bubbleId,jdbcType=BIGINT},
+      </if>
+      <if test="creator != null">
+        #{creator,jdbcType=VARCHAR},
+      </if>
+      <if test="tokenAddress != null">
+        #{tokenAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="tokenSymbol != null">
+        #{tokenSymbol,jdbcType=VARCHAR},
+      </if>
+      <if test="tokenDecimal != null">
+        #{tokenDecimal,jdbcType=INTEGER},
+      </if>
+      <if test="tokenRpc != null">
+        #{tokenRpc,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.turn.browser.dao.entity.RoundExample" resultType="java.lang.Long">
+    select count(*) from round
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update round
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.gameId != null">
+        game_id = #{record.gameId,jdbcType=BIGINT},
+      </if>
+      <if test="record.roundId != null">
+        round_id = #{record.roundId,jdbcType=BIGINT},
+      </if>
+      <if test="record.bubbleId != null">
+        bubble_id = #{record.bubbleId,jdbcType=BIGINT},
+      </if>
+      <if test="record.creator != null">
+        creator = #{record.creator,jdbcType=VARCHAR},
+      </if>
+      <if test="record.tokenAddress != null">
+        token_address = #{record.tokenAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="record.tokenSymbol != null">
+        token_symbol = #{record.tokenSymbol,jdbcType=VARCHAR},
+      </if>
+      <if test="record.tokenDecimal != null">
+        token_decimal = #{record.tokenDecimal,jdbcType=INTEGER},
+      </if>
+      <if test="record.tokenRpc != null">
+        token_rpc = #{record.tokenRpc,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null">
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update round
+    set id = #{record.id,jdbcType=BIGINT},
+      game_id = #{record.gameId,jdbcType=BIGINT},
+      round_id = #{record.roundId,jdbcType=BIGINT},
+      bubble_id = #{record.bubbleId,jdbcType=BIGINT},
+      creator = #{record.creator,jdbcType=VARCHAR},
+      token_address = #{record.tokenAddress,jdbcType=VARCHAR},
+      token_symbol = #{record.tokenSymbol,jdbcType=VARCHAR},
+      token_decimal = #{record.tokenDecimal,jdbcType=INTEGER},
+      token_rpc = #{record.tokenRpc,jdbcType=VARCHAR},
+      `status` = #{record.status,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.turn.browser.dao.entity.Round">
+    update round
+    <set>
+      <if test="gameId != null">
+        game_id = #{gameId,jdbcType=BIGINT},
+      </if>
+      <if test="roundId != null">
+        round_id = #{roundId,jdbcType=BIGINT},
+      </if>
+      <if test="bubbleId != null">
+        bubble_id = #{bubbleId,jdbcType=BIGINT},
+      </if>
+      <if test="creator != null">
+        creator = #{creator,jdbcType=VARCHAR},
+      </if>
+      <if test="tokenAddress != null">
+        token_address = #{tokenAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="tokenSymbol != null">
+        token_symbol = #{tokenSymbol,jdbcType=VARCHAR},
+      </if>
+      <if test="tokenDecimal != null">
+        token_decimal = #{tokenDecimal,jdbcType=INTEGER},
+      </if>
+      <if test="tokenRpc != null">
+        token_rpc = #{tokenRpc,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.turn.browser.dao.entity.Round">
+    update round
+    set game_id = #{gameId,jdbcType=BIGINT},
+      round_id = #{roundId,jdbcType=BIGINT},
+      bubble_id = #{bubbleId,jdbcType=BIGINT},
+      creator = #{creator,jdbcType=VARCHAR},
+      token_address = #{tokenAddress,jdbcType=VARCHAR},
+      token_symbol = #{tokenSymbol,jdbcType=VARCHAR},
+      token_decimal = #{tokenDecimal,jdbcType=INTEGER},
+      token_rpc = #{tokenRpc,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+    <update id="endRound">
+      update round set `status` = 0
+      where game_id = #{gameId,jdbcType=BIGINT}
+      and round_id = #{roundId,jdbcType=BIGINT}
+    </update>
+    <insert id="batchInsert" parameterType="map">
+    <!--
+      WARNING - @mbg.generated
+      This element is automatically generated by MyBatis Generator, do not modify.
+      @project https://github.com/itfsw/mybatis-generator-plugin
+    -->
+    insert into round
+    (id, game_id, round_id, bubble_id, creator, token_address, token_symbol, token_decimal, 
+      token_rpc, `status`, create_time, update_time)
+    values
+    <foreach collection="list" item="item" separator=",">
+      (#{item.id,jdbcType=BIGINT}, #{item.gameId,jdbcType=BIGINT}, #{item.roundId,jdbcType=BIGINT}, 
+        #{item.bubbleId,jdbcType=BIGINT}, #{item.creator,jdbcType=VARCHAR}, #{item.tokenAddress,jdbcType=VARCHAR}, 
+        #{item.tokenSymbol,jdbcType=VARCHAR}, #{item.tokenDecimal,jdbcType=INTEGER}, #{item.tokenRpc,jdbcType=VARCHAR}, 
+        #{item.status,jdbcType=INTEGER}, #{item.createTime,jdbcType=TIMESTAMP}, #{item.updateTime,jdbcType=TIMESTAMP}
+        )
+    </foreach>
+  </insert>
+  <insert id="batchInsertSelective" parameterType="map">
+    <!--
+      WARNING - @mbg.generated
+      This element is automatically generated by MyBatis Generator, do not modify.
+      @project https://github.com/itfsw/mybatis-generator-plugin
+    -->
+    insert into round (
+    <foreach collection="selective" item="column" separator=",">
+      ${column.escapedColumnName}
+    </foreach>
+    )
+    values
+    <foreach collection="list" item="item" separator=",">
+      (
+      <foreach collection="selective" item="column" separator=",">
+        <if test="'id'.toString() == column.value">
+          #{item.id,jdbcType=BIGINT}
+        </if>
+        <if test="'game_id'.toString() == column.value">
+          #{item.gameId,jdbcType=BIGINT}
+        </if>
+        <if test="'round_id'.toString() == column.value">
+          #{item.roundId,jdbcType=BIGINT}
+        </if>
+        <if test="'bubble_id'.toString() == column.value">
+          #{item.bubbleId,jdbcType=BIGINT}
+        </if>
+        <if test="'creator'.toString() == column.value">
+          #{item.creator,jdbcType=VARCHAR}
+        </if>
+        <if test="'token_address'.toString() == column.value">
+          #{item.tokenAddress,jdbcType=VARCHAR}
+        </if>
+        <if test="'token_symbol'.toString() == column.value">
+          #{item.tokenSymbol,jdbcType=VARCHAR}
+        </if>
+        <if test="'token_decimal'.toString() == column.value">
+          #{item.tokenDecimal,jdbcType=INTEGER}
+        </if>
+        <if test="'token_rpc'.toString() == column.value">
+          #{item.tokenRpc,jdbcType=VARCHAR}
+        </if>
+        <if test="'status'.toString() == column.value">
+          #{item.status,jdbcType=INTEGER}
+        </if>
+        <if test="'create_time'.toString() == column.value">
+          #{item.createTime,jdbcType=TIMESTAMP}
+        </if>
+        <if test="'update_time'.toString() == column.value">
+          #{item.updateTime,jdbcType=TIMESTAMP}
+        </if>
+      </foreach>
+      )
+    </foreach>
+  </insert>
+</mapper>
